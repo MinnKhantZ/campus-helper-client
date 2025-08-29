@@ -10,18 +10,32 @@ import MarketplaceScreen from "./screens/MarketplaceScreen";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import EventAddScreen from "./screens/EventAddScreen";
 import Colors from "./constants/Colors";
+import LoginScreen from "./screens/LoginScreen";
+import { useSelector, useDispatch } from 'react-redux';
+import { useEffect } from 'react';
+import { loadAuthFromStorage } from './features/authSlice';
+import type { RootState, AppDispatch } from './store';
 
 const Stack = createNativeStackNavigator();
 
 const StackGroup = () => {
+  const auth = useSelector((s: RootState) => s.auth);
+  const dispatch = useDispatch<AppDispatch>();
+  useEffect(() => { if (!auth.hydrated) { dispatch(loadAuthFromStorage()); } }, [auth.hydrated, dispatch]);
   const screenOptions = {
     headerShown: false,
-  };
+  } as const;
 
   return (
     <Stack.Navigator screenOptions={screenOptions}>
-      <Stack.Screen name="TabGroup" component={DrawerGroup} />
-      <Stack.Screen name="EventAdd" component={EventAddScreen} />
+      {!auth.accessToken ? (
+        <Stack.Screen name="Login" component={LoginScreen} />
+      ) : (
+        <>
+          <Stack.Screen name="TabGroup" component={DrawerGroup} />
+          <Stack.Screen name="EventAdd" component={EventAddScreen} />
+        </>
+      )}
     </Stack.Navigator>
   );
 };
@@ -29,6 +43,7 @@ const StackGroup = () => {
 const Drawer = createDrawerNavigator();
 
 const DrawerGroup = () => {
+  const user = useSelector((s: RootState) => s.auth?.user);
   return (
     <Drawer.Navigator
       screenOptions={({ route }) => ({
@@ -37,8 +52,9 @@ const DrawerGroup = () => {
         drawerStyle: {
           backgroundColor: Colors.surface,
         },
+        headerTitle: user ? `${user.name} (${user.role})` : undefined,
         drawerIcon: ({ focused, color, size }) => {
-          let iconName;
+          let iconName: string = 'home';
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
@@ -72,7 +88,7 @@ const TabGroup = () => {
     },
     tabBarActiveTintColor: Colors.primary,
     tabBarInactiveTintColor: Colors.gray,
-  };
+  } as const;
 
   return (
     <Tab.Navigator screenOptions={screenOptions} backBehavior="history">

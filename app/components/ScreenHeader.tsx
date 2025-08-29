@@ -1,9 +1,14 @@
-import { Text } from "react-native";
-import { TouchableOpacity, View, Platform } from "react-native";
+import { Text, TouchableOpacity, View, Platform } from "react-native";
 import AntDesign from "react-native-vector-icons/AntDesign";
-import Colors from "../constants/Colors"; // Import the Colors constant
+import Colors from "../constants/Colors";
 
-const ScreenHeader = ({ name, navigation, screen }) => {
+interface Props {
+  name: string;
+  navigation: { navigate: (s: string) => void; goBack: () => void };
+  screen?: string;
+}
+
+const ScreenHeader = ({ name, navigation, screen }: Props) => {
   const handlePress = () => {
     if (screen) {
       navigation.navigate(screen);
@@ -16,14 +21,14 @@ const ScreenHeader = ({ name, navigation, screen }) => {
     <View
       style={[
         styles.headerContainer,
-        Platform.OS === "ios" && styles.iosHeaderPadding
+        Platform.OS === "ios" && styles.iosHeaderPadding,
       ]}
     >
       <TouchableOpacity
         onPress={handlePress}
         style={[
           styles.backButton,
-          Platform.OS === "ios" && styles.iosBackButton
+          Platform.OS === "ios" && styles.iosBackButton,
         ]}
       >
         <AntDesign name="arrowleft" color={Colors.white} size={28} />
@@ -49,7 +54,7 @@ const styles = {
     shadowRadius: 4,
   },
   iosHeaderPadding: {
-    paddingTop: 40, // Extra padding for iOS status bar
+    paddingTop: 40,
   },
   backButton: {
     position: "absolute",
@@ -66,6 +71,6 @@ const styles = {
     color: Colors.white,
     fontWeight: "600",
   },
-};
+} as const;
 
 export default ScreenHeader;

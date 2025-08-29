@@ -3,7 +3,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import EventList from "../components/EventList";
 import Colors from "../constants/Colors";
 
-const EventsScreen = ({ navigation }) => {
+const EventsScreen = ({ navigation }: { navigation: any }) => {
   const handlePress = () => {
     navigation.navigate("EventAdd");
   };

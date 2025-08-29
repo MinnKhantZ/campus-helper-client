@@ -11,9 +11,9 @@ const periodTimes = [
   { start: "11:00", end: "11:50" },
   { start: "13:00", end: "13:50" },
   { start: "14:00", end: "14:50" },
-];
+] as const;
 
-const sampleData = {
+const sampleData: Record<string, string[]> = {
   Mon: ["Math", "Physics", "English", "—", "Biology", "Art"],
   Tue: ["History", "Chemistry", "Math", "CS", "—", "PE"],
   Wed: ["English", "—", "CS", "Math", "Art", "Biology"],
@@ -26,11 +26,11 @@ const getCurrentPeriodIndex = () => {
   const currentTime = now.getHours() * 60 + now.getMinutes();
 
   for (let i = 0; i < periodTimes.length; i++) {
-    const [startHour, startMin] = periodTimes[i].start.split(":").map(Number);
-    const [endHour, endMin] = periodTimes[i].end.split(":").map(Number);
-
-    const start = startHour * 60 + startMin;
-    const end = endHour * 60 + endMin;
+  const [startHour, startMin] = periodTimes[i]!.start.split(":").map(Number) as [number | undefined, number | undefined];
+  const [endHour, endMin] = periodTimes[i]!.end.split(":").map(Number) as [number | undefined, number | undefined];
+  if (startHour == null || startMin == null || endHour == null || endMin == null) continue;
+  const start = startHour * 60 + startMin;
+  const end = endHour * 60 + endMin;
 
     if (currentTime >= start && currentTime <= end) return i;
   }
@@ -44,9 +44,9 @@ const TimeTableScreen = () => {
 
   useEffect(() => {
     const now = new Date();
-    const dayIndex = now.getDay(); // 0 = Sunday
+    const dayIndex = now.getDay();
     const weekdayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    setCurrentDay(weekdayNames[dayIndex]);
+  setCurrentDay(weekdayNames[dayIndex] ?? "");
     setCurrentPeriod(getCurrentPeriodIndex());
   }, []);
 
@@ -74,7 +74,7 @@ const TimeTableScreen = () => {
             <View style={styles.timeCell}>
               <Text style={styles.periodNumber}>{period}</Text>
               <Text style={styles.timeText}>
-                {periodTimes[rowIndex].start} - {periodTimes[rowIndex].end}
+                {periodTimes[rowIndex]!.start} - {periodTimes[rowIndex]!.end}
               </Text>
             </View>
             
@@ -86,7 +86,7 @@ const TimeTableScreen = () => {
                   isCurrent && styles.currentSubjectCell
                 ]}>
                   <Text style={styles.subjectText}>
-                    {sampleData[day][rowIndex]}
+                    {sampleData[day]?.[rowIndex] ?? ''}
                   </Text>
                   {isCurrent && <View style={styles.currentIndicator} />}
                 </View>

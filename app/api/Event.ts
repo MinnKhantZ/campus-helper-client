@@ -1,40 +1,35 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { BASE_URL } from "./BaseUrl";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithReauth } from "./baseQuery";
+import type { EventItem } from "../types";
 
 export const eventApi = createApi({
   reducerPath: "eventApi",
   tagTypes: ["Events"],
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${BASE_URL}/events`,
-  }),
+  baseQuery: baseQueryWithReauth as any,
   endpoints: (builder) => ({
-    getAllEvents: builder.query({
-      query: () => `/`,
+    getAllEvents: builder.query<EventItem[], void>({
+      query: () => `/events/`,
       providesTags: ["Events"],
     }),
-    // getEventById: builder.query({
-    //   query: (id) => `/${id}`,
-    //   providesTags: ["Events"],
-    // }),
-    createEvent: builder.mutation({
+    createEvent: builder.mutation<EventItem, Partial<EventItem>>({
       query: (newEvent) => ({
-        url: "/",
+        url: "/events/",
         method: "POST",
         body: newEvent,
       }),
       invalidatesTags: ["Events"],
     }),
-    updateEvent: builder.mutation({
+    updateEvent: builder.mutation<EventItem, { id: number; updatedEvent: Partial<EventItem> }>({
       query: ({ id, updatedEvent }) => ({
-        url: `/${id}`,
+        url: `/events/${id}`,
         method: "PUT",
         body: updatedEvent,
       }),
       invalidatesTags: ["Events"],
     }),
-    deleteEvent: builder.mutation({
+    deleteEvent: builder.mutation<{ message: string }, number>({
       query: (id) => ({
-        url: `/${id}`,
+        url: `/events/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Events"],
@@ -44,7 +39,6 @@ export const eventApi = createApi({
 
 export const {
   useGetAllEventsQuery,
-//   useGetEventByIdQuery,
   useCreateEventMutation,
   useUpdateEventMutation,
   useDeleteEventMutation,

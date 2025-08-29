@@ -7,99 +7,30 @@ import CampusMarker from "../components/CampusMarker";
 import Colors from "../constants/Colors";
 
 const campusLocations = [
-  {
-    id: 1,
-    name: 'Main Library',
-    coordinate: { latitude: 22.030890315496965, longitude: 96.10182477082867 },
-    icon: 'local-library',
-  },
-  {
-    id: 2,
-    name: 'Dean',
-    coordinate: { latitude: 22.03097901933545, longitude: 96.10126019355586 },
-    icon: 'account-circle',
-  },
-  {
-    id: 3,
-    name: 'Main Building',
-    coordinate: { latitude: 22.0299504851196, longitude: 96.10135127082421 },
-    icon: 'apartment',
-  },
-  {
-    id: 4,
-    name: 'Drawing Building',
-    coordinate: { latitude: 22.030263768065762, longitude: 96.10245097652957 },
-    icon: 'brush',
-  },
-  {
-    id: 5,
-    name: 'Mechanical Department',
-    coordinate: { latitude: 22.03097881561455, longitude: 96.10264674904249 },
-    icon: 'precision-manufacturing',
-  },
-  {
-    id: 6,
-    name: 'Mechatronic Department',
-    coordinate: { latitude: 22.03125270607916, longitude: 96.10269185823829 },
-    icon: 'memory',
-  },
-  {
-    id: 7,
-    name: 'Information Technology Department',
-    coordinate: { latitude: 22.0314994161156, longitude: 96.10276177749769 },
-    icon: 'computer',
-  },
-  {
-    id: 8,
-    name: 'Civil Department',
-    coordinate: { latitude: 22.03233571814041, longitude: 96.10098221959079 },
-    icon: 'engineering',
-  },
-  {
-    id: 9,
-    name: 'Electronic Department',
-    coordinate: { latitude: 22.032167544042718, longitude: 96.10221799098197 },
-    icon: 'cable',
-  },
-  {
-    id: 10,
-    name: 'Architecture Department',
-    coordinate: { latitude: 22.032123192502727, longitude: 96.10246678774625 },
-    icon: 'architecture',
-  },
-  {
-    id: 11,
-    name: 'Electrical Power Department',
-    coordinate: { latitude: 22.03220893880358, longitude: 96.10201385004733 },
-    icon: 'bolt',
-  },
-  {
-    id: 12,
-    name: 'Canteen',
-    coordinate: { latitude: 22.03181601776903, longitude: 96.10340679744114 },
-    icon: 'restaurant',
-  },
-  {
-    id: 13,
-    name: 'Indoor Stadium',
-    coordinate: { latitude: 22.03366185742176, longitude: 96.10281455797926 },
-    icon: 'sports-handball',
-  },
-  {
-    id: 14,
-    name: 'Football Ground',
-    coordinate: { latitude: 22.03449725516056, longitude: 96.10308277888068 },
-    icon: 'sports-soccer',
-  }
-];
+  { id: 1, name: 'Main Library', coordinate: { latitude: 22.030890315496965, longitude: 96.10182477082867 }, icon: 'local-library' },
+  { id: 2, name: 'Dean', coordinate: { latitude: 22.03097901933545, longitude: 96.10126019355586 }, icon: 'account-circle' },
+  { id: 3, name: 'Main Building', coordinate: { latitude: 22.0299504851196, longitude: 96.10135127082421 }, icon: 'apartment' },
+  { id: 4, name: 'Drawing Building', coordinate: { latitude: 22.030263768065762, longitude: 96.10245097652957 }, icon: 'brush' },
+  { id: 5, name: 'Mechanical Department', coordinate: { latitude: 22.03097881561455, longitude: 96.10264674904249 }, icon: 'precision-manufacturing' },
+  { id: 6, name: 'Mechatronic Department', coordinate: { latitude: 22.03125270607916, longitude: 96.10269185823829 }, icon: 'memory' },
+  { id: 7, name: 'Information Technology Department', coordinate: { latitude: 22.0314994161156, longitude: 96.10276177749769 }, icon: 'computer' },
+  { id: 8, name: 'Civil Department', coordinate: { latitude: 22.03233571814041, longitude: 96.10098221959079 }, icon: 'engineering' },
+  { id: 9, name: 'Electronic Department', coordinate: { latitude: 22.032167544042718, longitude: 96.10221799098197 }, icon: 'cable' },
+  { id: 10, name: 'Architecture Department', coordinate: { latitude: 22.032123192502727, longitude: 96.10246678774625 }, icon: 'architecture' },
+  { id: 11, name: 'Electrical Power Department', coordinate: { latitude: 22.03220893880358, longitude: 96.10201385004733 }, icon: 'bolt' },
+  { id: 12, name: 'Canteen', coordinate: { latitude: 22.03181601776903, longitude: 96.10340679744114 }, icon: 'restaurant' },
+  { id: 13, name: 'Indoor Stadium', coordinate: { latitude: 22.03366185742176, longitude: 96.10281455797926 }, icon: 'sports-handball' },
+  { id: 14, name: 'Football Ground', coordinate: { latitude: 22.03449725516056, longitude: 96.10308277888068 }, icon: 'sports-soccer' }
+] as const;
 
 const MapScreen = () => {
-  const mapRef = useRef(null);
-  const [selected, setSelected] = useState(null);
+  const mapRef = useRef<MapView | null>(null);
+  const [selected, setSelected] = useState<(typeof campusLocations)[number] | null>(null);
     
-  const focusOnMarker = (index) => {
-    const location = campusLocations[index];
-    setSelected(location);
+  const focusOnMarker = (index: number) => {
+  const location = campusLocations[index];
+  if (!location) return;
+  setSelected(location);
     mapRef.current?.animateToRegion(
       {
         ...location.coordinate,
@@ -134,7 +65,6 @@ const MapScreen = () => {
             ))}
         </MapView>
 
-        {/* Navigation Buttons */}
         <Surface style={styles.navBar} elevation={4}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {campusLocations.map((loc, index) => (
@@ -149,7 +79,6 @@ const MapScreen = () => {
             </ScrollView>
         </Surface>
 
-        {/* Info Card */}
         {selected && (
             <View style={styles.infoCard}>
             <Text style={styles.infoTitle}>{selected.name}</Text>

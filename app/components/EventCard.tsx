@@ -2,18 +2,18 @@ import { View, Text, StyleSheet, Alert, TouchableOpacity } from "react-native";
 import Colors from "../constants/Colors";
 import { useState } from "react";
 import { useDeleteEventMutation } from "../api/Event";
+import type { EventItem } from "../types";
 
-const EventCard = (event) => {
+const EventCard = (event: EventItem) => {
   const [showDelete, setShowDelete] = useState(false);
   const [deleteEvent] = useDeleteEventMutation();
 
   const date = new Date(event.date);
 
-  const formatTime = (date) =>
+  const formatTime = (date: Date) =>
     date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-  const formatDate = (date) =>
-    date.toISOString().split("T")[0];
+  const formatDate = (date: Date) => date.toISOString().split("T")[0];
 
   const handleLongPress = () => setShowDelete(true);
   const handlePress = () => setShowDelete(false);
@@ -26,7 +26,7 @@ const EventCard = (event) => {
         style: "destructive",
         onPress: async () => {
           try {
-            await deleteEvent(event.id);
+            await deleteEvent(event.id).unwrap();
             setShowDelete(false);
           } catch (err) {
             console.error("Delete failed", err);

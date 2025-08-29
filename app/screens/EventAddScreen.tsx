@@ -13,7 +13,7 @@ import ScreenHeader from "../components/ScreenHeader";
 import { useCreateEventMutation } from "../api/Event";
 import Colors from "../constants/Colors";
 
-const EventAddScreen = ({ navigation }) => {
+const EventAddScreen = ({ navigation }: { navigation: any }) => {
   const [title, setTitle] = useState("");
   const [place, setPlace] = useState("");
   const [description, setDescription] = useState("");
@@ -26,25 +26,24 @@ const EventAddScreen = ({ navigation }) => {
   const showDateMode = () => setShowDatePicker(true);
   const showTimeMode = () => setShowTimePicker(true);
 
-  const handleDateChange = (event, selectedDate) => {
+  const handleDateChange = (_: any, selectedDate?: Date) => {
     setShowDatePicker(false);
-    if (event.type === "set" && selectedDate) {
+    if (selectedDate) {
       setDate((prev) => new Date(selectedDate.setHours(prev.getHours(), prev.getMinutes())));
     }
   };
 
-  const handleTimeChange = (event, selectedTime) => {
+  const handleTimeChange = (_: any, selectedTime?: Date) => {
     setShowTimePicker(false);
-    if (event.type === "set" && selectedTime) {
+    if (selectedTime) {
       setDate((prev) => new Date(prev.setHours(selectedTime.getHours(), selectedTime.getMinutes())));
     }
   };
 
-  const formatTime = (date) =>
-    date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const formatTime = (d: Date) =>
+    d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-  const formatDate = (date) =>
-    date.toISOString().split("T")[0]; // YYYY-MM-DD
+  const formatDate = (d: Date) => d.toISOString().split("T")[0];
 
   const handleSubmit = async () => {
     if (!title || !description || !date || !place) return;
@@ -53,12 +52,10 @@ const EventAddScreen = ({ navigation }) => {
       description,
       date,
       place,
-    };
-    console.log("New Event:", newEvent);
-    
+    } as const;
+
     try {
-      const event = await createEvent(newEvent);
-      console.log("Event created successfully: ", event);
+      await createEvent(newEvent).unwrap();
     } catch (error) {
       console.error("Error creating event: ", error);
     } finally {
@@ -68,7 +65,7 @@ const EventAddScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <ScreenHeader name={"Add Event"} navigation={navigation}/>
+      <ScreenHeader name={"Add Event"} navigation={navigation} />
       <View style={styles.form}>
         <Text style={styles.label}>Title</Text>
         <TextInput
@@ -85,24 +82,14 @@ const EventAddScreen = ({ navigation }) => {
           <Text style={styles.dateText}>{formatDate(date)}</Text>
         </TouchableOpacity>
         {showDatePicker && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display="default"
-            onChange={handleDateChange}
-          />
+          <DateTimePicker value={date} mode="date" display="default" onChange={handleDateChange} />
         )}
 
         <TouchableOpacity style={styles.dateButton} onPress={showTimeMode}>
           <Text style={styles.dateText}>{formatTime(date)}</Text>
         </TouchableOpacity>
         {showTimePicker && (
-          <DateTimePicker
-            value={date}
-            mode="time"
-            display="default"
-            onChange={handleTimeChange}
-          />
+          <DateTimePicker value={date} mode="time" display="default" onChange={handleTimeChange} />
         )}
 
         <Text style={styles.label}>Place</Text>
