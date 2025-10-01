@@ -29,3 +29,42 @@ export interface EventItem {
   place: string;
   user_id?: number | null;
 }
+
+export interface ClubItem {
+  id: number;
+  name: string;
+  description?: string;
+  admin_id: number;
+  student_ids: number[];
+  pending_ids: number[];
+}
+
+export interface AnnouncementItem {
+  id: number;
+  club_id: number;
+  user_id: number;
+  content: string;
+  author?: User;
+}
+
+export interface MarketplaceItem {
+  id: number;
+  title: string;
+  description?: string;
+  price: number;
+  category?: string;
+  contact_phone?: string;
+  contact_link?: string;
+  image_url?: string;
+  status: 'available' | 'sold';
+  user_id: number;
+}
+
+export interface ClubMessage {
+  id: number;
+  club_id: number;
+  user_id: number;
+  content: string;
+  author?: User;
+  createdAt?: string;
+}

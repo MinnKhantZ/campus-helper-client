@@ -5,4 +5,4 @@
 // export const BASE_URL = "https://campus-helper-backend.onrender.com/api";
 
 // Local
-export const BASE_URL = "http://192.168.247.7:5000/api";
+export const BASE_URL = "http://192.168.138.7:5000/api";

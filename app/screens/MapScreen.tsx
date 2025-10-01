@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import MapView from "react-native-maps";
+import MapView, { Region } from "react-native-maps";
 import { Surface } from "react-native-paper";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import CampusMarker from "../components/CampusMarker";
@@ -24,14 +24,15 @@ const campusLocations = [
 ] as const;
 
 const MapScreen = () => {
-  const mapRef = useRef<MapView | null>(null);
+  type MapViewLike = MapView & { animateToRegion: (region: Region, duration?: number) => void };
+  const mapRef = useRef<MapViewLike | null>(null);
   const [selected, setSelected] = useState<(typeof campusLocations)[number] | null>(null);
     
   const focusOnMarker = (index: number) => {
   const location = campusLocations[index];
   if (!location) return;
   setSelected(location);
-    mapRef.current?.animateToRegion(
+  mapRef.current?.animateToRegion(
       {
         ...location.coordinate,
         latitudeDelta: 0.001,

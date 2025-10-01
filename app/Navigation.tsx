@@ -9,12 +9,27 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import MarketplaceScreen from "./screens/MarketplaceScreen";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import EventAddScreen from "./screens/EventAddScreen";
+import ClubInfoScreen from "./screens/ClubInfoScreen";
+import ClubFormScreen from "./screens/ClubFormScreen";
+import MarketDetailScreen from "./screens/MarketDetailScreen";
+import MarketFormScreen from "./screens/MarketFormScreen";
+import ClubChatScreen from "./screens/ClubChatScreen";
 import Colors from "./constants/Colors";
 import LoginScreen from "./screens/LoginScreen";
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect } from 'react';
 import { loadAuthFromStorage } from './features/authSlice';
 import type { RootState, AppDispatch } from './store';
+export type RootStackParamList = {
+  Login: undefined;
+  TabGroup: undefined;
+  EventAdd: undefined;
+  ClubInfo: undefined;
+  ClubForm: undefined;
+  MarketDetail: { id: number };
+  MarketForm: { id?: number } | undefined;
+  ClubChat: { id: number };
+};
 
 const Stack = createNativeStackNavigator();
 
@@ -31,10 +46,15 @@ const StackGroup = () => {
       {!auth.accessToken ? (
         <Stack.Screen name="Login" component={LoginScreen} />
       ) : (
-        <>
-          <Stack.Screen name="TabGroup" component={DrawerGroup} />
-          <Stack.Screen name="EventAdd" component={EventAddScreen} />
-        </>
+        [
+          <Stack.Screen key="tab" name="TabGroup" component={DrawerGroup} />,
+          <Stack.Screen key="addevent" name="EventAdd" component={EventAddScreen} />,
+          <Stack.Screen key="clubinfo" name="ClubInfo" component={ClubInfoScreen} />,
+          <Stack.Screen key="clubform" name="ClubForm" component={ClubFormScreen} />,
+          <Stack.Screen key="clubchat" name="ClubChat" component={ClubChatScreen} />,
+          <Stack.Screen key="marketdetail" name="MarketDetail" component={MarketDetailScreen} />,
+          <Stack.Screen key="marketform" name="MarketForm" component={MarketFormScreen} />,
+        ]
       )}
     </Stack.Navigator>
   );

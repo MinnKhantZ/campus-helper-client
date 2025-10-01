@@ -12,7 +12,7 @@ interface Location {
 }
 
 const CampusMarker = React.memo(({ location }: { location: Location }) => (
-  <Marker coordinate={location.coordinate} title={location.name}>
+  <Marker coordinate={location.coordinate}>
     <View style={styles.customMarker}>
       <MaterialIcons name={location.icon} size={24} color={Colors.primary} />
     </View>

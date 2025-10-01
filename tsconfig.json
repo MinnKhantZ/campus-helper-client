@@ -11,10 +11,12 @@
     "noImplicitReturns": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "types": ["react", "react-native"],
+    "types": ["react"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./app/*"]
+  "@/*": ["./app/*"],
+  "react-native-maps": ["./app/types/react-native-maps"],
+  "react-native-maps/*": ["./app/types/react-native-maps"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "**/*.d.ts"],
