@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import MapView, { Region } from "react-native-maps";
 import { Surface } from "react-native-paper";
-import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons } from '@expo/vector-icons';
 import CampusMarker from "../components/CampusMarker";
 import Colors from "../constants/Colors";
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Marker } from 'react-native-maps';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../constants/Colors';
 
 interface Location {
@@ -14,7 +14,7 @@ interface Location {
 const CampusMarker = React.memo(({ location }: { location: Location }) => (
   <Marker coordinate={location.coordinate}>
     <View style={styles.customMarker}>
-      <MaterialIcons name={location.icon} size={24} color={Colors.primary} />
+      <MaterialIcons name={location.icon as any} size={24} color={Colors.primary} />
     </View>
   </Marker>
 ));

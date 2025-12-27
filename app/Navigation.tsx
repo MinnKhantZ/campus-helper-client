@@ -7,7 +7,7 @@ import MapScreen from "./screens/MapScreen";
 import ClubsScreen from "./screens/ClubsScreen";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import MarketplaceScreen from "./screens/MarketplaceScreen";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import EventAddScreen from "./screens/EventAddScreen";
 import ClubInfoScreen from "./screens/ClubInfoScreen";
 import ClubFormScreen from "./screens/ClubFormScreen";
@@ -84,7 +84,7 @@ const DrawerGroup = () => {
             iconName = focused ? 'account-group' : 'account-group-outline';
           }
 
-          return <Icon name={iconName} size={size} color={color} />;
+          return <Icon name={iconName as any} size={size} color={color} />;
         },
       })}
     >

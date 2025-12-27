@@ -1,5 +1,5 @@
 import { Text, TouchableOpacity, View, Platform } from "react-native";
-import AntDesign from "react-native-vector-icons/AntDesign";
+import { AntDesign } from '@expo/vector-icons';
 import Colors from "../constants/Colors";
 
 interface Props {
@@ -31,7 +31,7 @@ const ScreenHeader = ({ name, navigation, screen }: Props) => {
           Platform.OS === "ios" && styles.iosBackButton,
         ]}
       >
-        <AntDesign name="arrowleft" color={Colors.white} size={28} />
+        <AntDesign name="arrow-left" color={Colors.white} size={28} />
       </TouchableOpacity>
       <Text style={styles.headerTitle}>{name}</Text>
     </View>
