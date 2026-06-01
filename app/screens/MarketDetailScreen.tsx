@@ -1,4 +1,4 @@
-import { View, StyleSheet, Image, Linking, ScrollView } from 'react-native';
+import { View, StyleSheet, Image, Linking, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, Button, Chip, Divider } from 'react-native-paper';
 import { useGetItemQuery, useDeleteItemMutation } from '../api/Marketplace';
@@ -52,7 +52,21 @@ const MarketDetailScreen = () => {
       {canEdit ? (
         <View style={[styles.row, { marginTop: 16 }]}>
           <Button icon="pencil" onPress={() => nav.navigate('MarketForm', { id: item.id })}>Edit</Button>
-          <Button icon="delete" textColor="red" onPress={async () => { await delItem(item.id).unwrap(); nav.goBack(); }}>Delete</Button>
+          <Button icon="delete" textColor="red" onPress={() => {
+            Alert.alert('Delete Item', 'Are you sure you want to delete this item?', [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Delete', style: 'destructive', onPress: async () => {
+                  try {
+                    await delItem(item.id).unwrap();
+                    nav.goBack();
+                  } catch {
+                    Alert.alert('Error', 'Failed to delete item.');
+                  }
+                },
+              },
+            ]);
+          }}>Delete</Button>
         </View>
       ) : null}
       </ScrollView>

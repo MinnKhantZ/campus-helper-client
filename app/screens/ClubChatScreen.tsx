@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { View, FlatList, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+import { View, FlatList, KeyboardAvoidingView, Platform, StyleSheet, Alert } from "react-native";
 import {
   Appbar,
   Avatar,
@@ -8,7 +8,7 @@ import {
   Text,
   TextInput,
 } from "react-native-paper";
-import { useRoute, RouteProp } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import type { RootStackParamList } from "../Navigation";
 import {
   useGetClubMessagesQuery,
@@ -20,6 +20,7 @@ import Colors from "@/constants/Colors";
 
 const ClubChatScreen = () => {
   const route = useRoute<RouteProp<RootStackParamList, "ClubChat">>();
+  const nav = useNavigation();
   const id = Number(route.params?.id);
   const { data, refetch, isFetching } = useGetClubMessagesQuery({
     clubId: id,
@@ -45,8 +46,8 @@ const ClubChatScreen = () => {
       await sendMessage({ clubId: id, content: text.trim() }).unwrap();
       setText("");
       refetch();
-    } catch (e) {
-      console.warn(e);
+    } catch {
+      Alert.alert('Error', 'Failed to send message. Please try again.');
     }
   };
 
@@ -60,6 +61,11 @@ const ClubChatScreen = () => {
       />
       <Card.Content>
         <Text>{item.content}</Text>
+        {item.createdAt ? (
+          <Text variant="bodySmall" style={{ marginTop: 4, opacity: 0.55 }}>
+            {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </Text>
+        ) : null}
       </Card.Content>
     </Card>
   );
@@ -71,6 +77,7 @@ const ClubChatScreen = () => {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <Appbar.Header>
+          <Appbar.BackAction onPress={() => nav.goBack()} />
           <Appbar.Content title="Club Chat" />
         </Appbar.Header>
         <FlatList

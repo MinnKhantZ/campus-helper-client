@@ -47,6 +47,14 @@ export const clubApi = createApi({
       query: ({ id, content }) => ({ url: `/clubs/${id}/announcements`, method: 'POST', body: { content } }),
       invalidatesTags: (_r, _e, { id }) => [{ type: 'Announcements', id }],
     }),
+    rejectJoin: builder.mutation<{ message: string; club: ClubItem }, { id: number; userId: number }>({
+      query: ({ id, userId }) => ({ url: `/clubs/${id}/reject`, method: 'POST', body: { userId } }),
+      invalidatesTags: (_r, _e, { id }) => ['Clubs', { type: 'Club' as const, id }],
+    }),
+    leaveClub: builder.mutation<{ message: string; club: ClubItem }, number>({
+      query: (id) => ({ url: `/clubs/${id}/leave`, method: 'POST' }),
+      invalidatesTags: (_r, _e, id) => ['Clubs', { type: 'Club' as const, id }],
+    }),
   }),
 });
 
@@ -59,6 +67,8 @@ export const {
   useUpdateClubMutation,
   useRequestJoinMutation,
   useApproveJoinMutation,
+  useRejectJoinMutation,
+  useLeaveClubMutation,
   useGetAnnouncementsQuery,
   usePostAnnouncementMutation,
 } = clubApi;

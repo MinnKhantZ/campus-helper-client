@@ -58,6 +58,7 @@ export interface MarketplaceItem {
   image_url?: string;
   status: 'available' | 'sold';
   user_id: number;
+  seller?: { id: number; name: string; phone: string };
 }
 
 export interface ClubMessage {

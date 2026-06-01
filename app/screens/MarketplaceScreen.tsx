@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, StyleSheet, FlatList, Linking } from 'react-native';
+import { View, StyleSheet, FlatList, Linking, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, TextInput, Button, Chip, Divider, IconButton, List } from 'react-native-paper';
 import { useListItemsQuery, useDeleteItemMutation } from '../api/Marketplace';
@@ -27,8 +27,19 @@ const MarketplaceScreen = () => {
     return Array.from(set);
   }, [data]);
 
-  const onDelete = async (id: number) => {
-    try { await delItem(id).unwrap(); } catch { /* noop */ }
+  const onDelete = (id: number) => {
+    Alert.alert('Delete Item', 'Delete this item?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete', style: 'destructive', onPress: async () => {
+          try {
+            await delItem(id).unwrap();
+          } catch {
+            Alert.alert('Error', 'Failed to delete item.');
+          }
+        },
+      },
+    ]);
   };
 
   const renderItem = ({ item }: { item: MarketplaceItem }) => (
@@ -95,6 +106,7 @@ const MarketplaceScreen = () => {
         refreshing={isFetching}
         onRefresh={refetch}
         ItemSeparatorComponent={Divider}
+        contentContainerStyle={{ paddingBottom: 80 }}
         ListEmptyComponent={<View style={styles.empty}><Text>No items</Text></View>}
       />
       <Button mode="contained" style={styles.fab} icon="plus" onPress={() => nav.navigate('MarketForm')}>Sell an item</Button>

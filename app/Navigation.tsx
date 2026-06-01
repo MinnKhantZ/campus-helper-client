@@ -24,8 +24,8 @@ export type RootStackParamList = {
   Login: undefined;
   TabGroup: undefined;
   EventAdd: undefined;
-  ClubInfo: undefined;
-  ClubForm: undefined;
+  ClubInfo: { id: number };
+  ClubForm: { id?: number } | undefined;
   MarketDetail: { id: number };
   MarketForm: { id?: number } | undefined;
   ClubChat: { id: number };

@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../Navigation';
@@ -34,8 +34,8 @@ const ClubFormScreen = () => {
         await createClub({ name: name.trim(), description }).unwrap();
       }
       nav.goBack();
-    } catch (e) {
-      console.warn(e);
+    } catch {
+      Alert.alert('Error', 'Failed to save club. Please try again.');
     }
   };
 

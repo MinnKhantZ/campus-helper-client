@@ -1,4 +1,4 @@
-import { View, StyleSheet, ScrollView, Image } from 'react-native';
+import { View, StyleSheet, ScrollView, Image, Alert } from 'react-native';
 import { TextInput, Button, Text, Switch } from 'react-native-paper';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useCreateItemMutation, useGetItemQuery, useUpdateItemMutation } from '../api/Marketplace';
@@ -62,12 +62,16 @@ const MarketFormScreen = () => {
       status,
       image_url: image_url || undefined,
     };
-    if (id) {
-      await updateItem({ id, data: payload }).unwrap();
-    } else {
-      await createItem(payload).unwrap();
+    try {
+      if (id) {
+        await updateItem({ id, data: payload }).unwrap();
+      } else {
+        await createItem(payload).unwrap();
+      }
+      nav.goBack();
+    } catch {
+      Alert.alert('Error', 'Failed to save item. Please try again.');
     }
-  nav.goBack();
   };
 
   const pickImage = async () => {
