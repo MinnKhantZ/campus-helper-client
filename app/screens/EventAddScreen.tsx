@@ -2,16 +2,22 @@ import { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
-  TouchableOpacity,
+  ScrollView,
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { TouchableOpacity } from "react-native-gesture-handler";
+import { LinearGradient } from "expo-linear-gradient";
+import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
+import { MotiView } from "moti";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import ScreenHeader from "../components/ScreenHeader";
+import GlassCard from "../components/ui/GlassCard";
+import GlassInput from "../components/ui/GlassInput";
+import GlassButton from "../components/ui/GlassButton";
 import { useCreateEventMutation } from "../api/Event";
-import Colors from "../constants/Colors";
+import { useTheme, spacing, radius } from "../theme";
 
 const EventAddScreen = ({ navigation }: { navigation: any }) => {
   const [title, setTitle] = useState("");
@@ -19,12 +25,10 @@ const EventAddScreen = ({ navigation }: { navigation: any }) => {
   const [description, setDescription] = useState("");
   const [date, setDate] = useState(new Date());
   const [createEvent, { isLoading }] = useCreateEventMutation();
+  const theme = useTheme();
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-
-  const showDateMode = () => setShowDatePicker(true);
-  const showTimeMode = () => setShowTimePicker(true);
 
   const handleDateChange = (_: any, selectedDate?: Date) => {
     setShowDatePicker(false);
@@ -42,151 +46,154 @@ const EventAddScreen = ({ navigation }: { navigation: any }) => {
 
   const formatTime = (d: Date) =>
     d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
-  const formatDate = (d: Date) => d.toISOString().split("T")[0];
+  const formatDate = (d: Date) => d.toISOString().split("T")[0]!;
 
   const handleSubmit = async () => {
-    if (!title || !description || !date || !place) return;
-    const newEvent = {
-      title,
-      description,
-      date,
-      place,
-    } as const;
-
+    if (!title || !description || !place) return;
     try {
-      await createEvent(newEvent).unwrap();
-    } catch (error) {
-      console.error("Error creating event: ", error);
+      await createEvent({ title, description, date, place }).unwrap();
+    } catch (err) {
+      console.error("Error creating event: ", err);
     } finally {
       navigation.goBack();
     }
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <ScreenHeader name={"Add Event"} navigation={navigation} />
-      <View style={styles.form}>
-        <Text style={styles.label}>Title</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter title"
-          placeholderTextColor={Colors.gray}
-          value={title}
-          onChangeText={setTitle}
-        />
+    <LinearGradient
+      colors={[theme.gradientStart, theme.gradientMid, theme.gradientEnd]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradient}
+    >
+      <SafeAreaView style={styles.safe} edges={["top"]}>
+        <ScreenHeader name="Add Event" navigation={navigation} />
 
-        <Text style={styles.label}>Date & Time</Text>
-
-        <TouchableOpacity style={styles.dateButton} onPress={showDateMode}>
-          <Text style={styles.dateText}>{formatDate(date)}</Text>
-        </TouchableOpacity>
-        {showDatePicker && (
-          <DateTimePicker value={date} mode="date" display="default" onChange={handleDateChange} />
-        )}
-
-        <TouchableOpacity style={styles.dateButton} onPress={showTimeMode}>
-          <Text style={styles.dateText}>{formatTime(date)}</Text>
-        </TouchableOpacity>
-        {showTimePicker && (
-          <DateTimePicker value={date} mode="time" display="default" onChange={handleTimeChange} />
-        )}
-
-        <Text style={styles.label}>Place</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter place"
-          placeholderTextColor={Colors.gray}
-          value={place}
-          onChangeText={setPlace}
-        />
-
-        <Text style={styles.label}>Description</Text>
-        <TextInput
-          style={[styles.input, styles.multiline]}
-          placeholder="Enter description"
-          placeholderTextColor={Colors.gray}
-          multiline
-          numberOfLines={4}
-          value={description}
-          onChangeText={setDescription}
-        />
-
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonDisabled]}
-            onPress={handleSubmit}
-            disabled={isLoading}
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <MotiView
+            from={{ opacity: 0, translateY: 24 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: "spring", delay: 80, damping: 18, stiffness: 160 }}
           >
-            {isLoading ? (
-              <ActivityIndicator color={Colors.white} />
-            ) : (
-              <Text style={styles.buttonText}>Save Event</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </View>
-    </SafeAreaView>
+            <GlassCard style={styles.card}>
+              <GlassInput
+                label="Event Title"
+                placeholder="e.g. Tech Talk 2026"
+                value={title}
+                onChangeText={setTitle}
+              />
+              <GlassInput
+                label="Location"
+                placeholder="e.g. Main Auditorium"
+                value={place}
+                onChangeText={setPlace}
+              />
+              <GlassInput
+                label="Description"
+                placeholder="Describe the event…"
+                value={description}
+                onChangeText={setDescription}
+                multiline
+                numberOfLines={4}
+                style={{ minHeight: 96, textAlignVertical: "top" }}
+              />
+
+              {/* Date & Time pickers */}
+              <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>
+                Date &amp; Time
+              </Text>
+              <View style={styles.pickerRow}>
+                <TouchableOpacity
+                  style={[styles.pickerBtn, { backgroundColor: theme.chip, borderColor: theme.border }]}
+                  onPress={() => setShowDatePicker(true)}
+                  activeOpacity={0.8}
+                >
+                  <Icon name="calendar-outline" size={16} color={theme.primary} />
+                  <Text style={[styles.pickerText, { color: theme.primary }]}>
+                    {formatDate(date)}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.pickerBtn, { backgroundColor: theme.chip, borderColor: theme.border }]}
+                  onPress={() => setShowTimePicker(true)}
+                  activeOpacity={0.8}
+                >
+                  <Icon name="clock-outline" size={16} color={theme.primary} />
+                  <Text style={[styles.pickerText, { color: theme.primary }]}>
+                    {formatTime(date)}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {showDatePicker && (
+                <DateTimePicker value={date} mode="date" display="default" onChange={handleDateChange} />
+              )}
+              {showTimePicker && (
+                <DateTimePicker value={date} mode="time" display="default" onChange={handleTimeChange} />
+              )}
+            </GlassCard>
+          </MotiView>
+
+          <MotiView
+            from={{ opacity: 0, translateY: 16 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: "spring", delay: 180, damping: 18, stiffness: 160 }}
+          >
+            <GlassButton
+              title="Save Event"
+              onPress={handleSubmit}
+              loading={isLoading}
+              disabled={!title || !description || !place}
+              style={styles.saveBtn}
+            />
+          </MotiView>
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  gradient: { flex: 1 },
+  safe: { flex: 1 },
+  scroll: {
+    padding: spacing.lg,
+    paddingBottom: 40,
+  },
+  card: {
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: "500",
+    marginBottom: 8,
+    letterSpacing: 0.3,
+  },
+  pickerRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  pickerBtn: {
     flex: 1,
-    backgroundColor: Colors.background,
-  },
-  form: {
-    marginHorizontal: 20,
-    marginTop: 20,
-    gap: 15,
-  },
-  label: {
-    fontWeight: "600",
-    fontSize: 16,
-    marginBottom: 5,
-    color: Colors.primaryDark,
-  },
-  input: {
-    backgroundColor: Colors.surface,
-    borderRadius: 8,
-    padding: 12,
-    borderColor: Colors.gray,
-    borderWidth: 1,
-    fontSize: 16,
-    color: Colors.black,
-  },
-  multiline: {
-    height: 100,
-    textAlignVertical: "top",
-  },
-  dateButton: {
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: Colors.surface,
-    borderColor: Colors.gray,
-    borderWidth: 1,
-  },
-  dateText: {
-    fontSize: 16,
-    color: Colors.black,
-  },
-  buttonContainer: {
-    marginTop: 20,
-  },
-  button: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 12,
-    borderRadius: 8,
+    flexDirection: "row",
     alignItems: "center",
+    gap: 6,
+    padding: 12,
+    borderRadius: radius.md,
+    borderWidth: 1,
   },
-  buttonDisabled: {
-    opacity: 0.6,
-    backgroundColor: Colors.primaryLight,
+  pickerText: {
+    fontSize: 14,
+    fontWeight: "600",
   },
-  buttonText: {
-    color: Colors.white,
-    fontSize: 16,
-    fontWeight: "bold",
+  saveBtn: {
+    marginHorizontal: 0,
   },
 });
 

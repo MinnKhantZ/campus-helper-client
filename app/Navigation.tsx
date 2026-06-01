@@ -5,24 +5,23 @@ import EventsScreen from "./screens/EventsScreen";
 import TimeTableScreen from "./screens/TimeTableScreen";
 import MapScreen from "./screens/MapScreen";
 import ClubsScreen from "./screens/ClubsScreen";
-import { createDrawerNavigator } from "@react-navigation/drawer";
 import MarketplaceScreen from "./screens/MarketplaceScreen";
-import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import EventAddScreen from "./screens/EventAddScreen";
 import ClubInfoScreen from "./screens/ClubInfoScreen";
 import ClubFormScreen from "./screens/ClubFormScreen";
 import MarketDetailScreen from "./screens/MarketDetailScreen";
 import MarketFormScreen from "./screens/MarketFormScreen";
 import ClubChatScreen from "./screens/ClubChatScreen";
-import Colors from "./constants/Colors";
 import LoginScreen from "./screens/LoginScreen";
+import TabBar from "./components/ui/TabBar";
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect } from 'react';
 import { loadAuthFromStorage } from './features/authSlice';
 import type { RootState, AppDispatch } from './store';
+
 export type RootStackParamList = {
   Login: undefined;
-  TabGroup: undefined;
+  MainTabs: undefined;
   EventAdd: undefined;
   ClubInfo: { id: number };
   ClubForm: { id?: number } | undefined;
@@ -32,114 +31,46 @@ export type RootStackParamList = {
 };
 
 const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+const MainTabs = () => (
+  <Tab.Navigator
+    tabBar={(props) => <TabBar {...props} />}
+    screenOptions={{ headerShown: false }}
+  >
+    <Tab.Screen name="Events" component={EventsScreen} />
+    <Tab.Screen name="TimeTable" component={TimeTableScreen} />
+    <Tab.Screen name="Map" component={MapScreen} />
+    <Tab.Screen name="Marketplace" component={MarketplaceScreen} />
+    <Tab.Screen name="Clubs" component={ClubsScreen} />
+  </Tab.Navigator>
+);
 
 const StackGroup = () => {
   const auth = useSelector((s: RootState) => s.auth);
   const dispatch = useDispatch<AppDispatch>();
-  useEffect(() => { if (!auth.hydrated) { dispatch(loadAuthFromStorage()); } }, [auth.hydrated, dispatch]);
-  const screenOptions = {
-    headerShown: false,
-  } as const;
+  useEffect(() => {
+    if (!auth.hydrated) {
+      dispatch(loadAuthFromStorage());
+    }
+  }, [auth.hydrated, dispatch]);
 
   return (
-    <Stack.Navigator screenOptions={screenOptions}>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       {!auth.accessToken ? (
         <Stack.Screen name="Login" component={LoginScreen} />
       ) : (
-        [
-          <Stack.Screen key="tab" name="TabGroup" component={DrawerGroup} />,
-          <Stack.Screen key="addevent" name="EventAdd" component={EventAddScreen} />,
-          <Stack.Screen key="clubinfo" name="ClubInfo" component={ClubInfoScreen} />,
-          <Stack.Screen key="clubform" name="ClubForm" component={ClubFormScreen} />,
-          <Stack.Screen key="clubchat" name="ClubChat" component={ClubChatScreen} />,
-          <Stack.Screen key="marketdetail" name="MarketDetail" component={MarketDetailScreen} />,
-          <Stack.Screen key="marketform" name="MarketForm" component={MarketFormScreen} />,
-        ]
+        <>
+          <Stack.Screen name="MainTabs" component={MainTabs} />
+          <Stack.Screen name="EventAdd" component={EventAddScreen} />
+          <Stack.Screen name="ClubInfo" component={ClubInfoScreen} />
+          <Stack.Screen name="ClubForm" component={ClubFormScreen} />
+          <Stack.Screen name="ClubChat" component={ClubChatScreen} />
+          <Stack.Screen name="MarketDetail" component={MarketDetailScreen} />
+          <Stack.Screen name="MarketForm" component={MarketFormScreen} />
+        </>
       )}
     </Stack.Navigator>
-  );
-};
-
-const Drawer = createDrawerNavigator();
-
-const DrawerGroup = () => {
-  const user = useSelector((s: RootState) => s.auth?.user);
-  return (
-    <Drawer.Navigator
-      screenOptions={({ route }) => ({
-        drawerActiveTintColor: Colors.drawerActive,
-        drawerInactiveTintColor: Colors.drawerInactive,
-        drawerStyle: {
-          backgroundColor: Colors.surface,
-        },
-        headerTitle: user ? `${user.name} (${user.role})` : undefined,
-        drawerIcon: ({ focused, color, size }) => {
-          let iconName: string = 'home';
-
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Marketplace') {
-            iconName = focused ? 'shopping' : 'shopping-outline';
-          } else if (route.name === 'Clubs') {
-            iconName = focused ? 'account-group' : 'account-group-outline';
-          }
-
-          return <Icon name={iconName as any} size={size} color={color} />;
-        },
-      })}
-    >
-      <Drawer.Screen name="Home" component={TabGroup} />
-      <Drawer.Screen name="Marketplace" component={MarketplaceScreen} />
-      <Drawer.Screen name="Clubs" component={ClubsScreen} />
-    </Drawer.Navigator>
-  );
-};
-
-const Tab = createBottomTabNavigator();
-
-const TabGroup = () => {
-  const screenOptions = {
-    headerShown: false,
-    tabBarLabel: () => null,
-    tabBarStyle: {
-      backgroundColor: Colors.tabBackground,
-      borderTopColor: Colors.background,
-      elevation: 5,
-    },
-    tabBarActiveTintColor: Colors.primary,
-    tabBarInactiveTintColor: Colors.gray,
-  } as const;
-
-  return (
-    <Tab.Navigator screenOptions={screenOptions} backBehavior="history">
-      <Tab.Screen
-        name="Events"
-        component={EventsScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Icon name="calendar" color={color} size={size} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="TimeTable"
-        component={TimeTableScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Icon name="clock-time-four-outline" color={color} size={size} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Map"
-        component={MapScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Icon name="map-marker" color={color} size={size} />
-          ),
-        }}
-      />
-    </Tab.Navigator>
   );
 };
 
@@ -152,3 +83,4 @@ const Navigation = () => {
 };
 
 export default Navigation;
+

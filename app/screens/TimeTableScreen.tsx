@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
-import Colors from "../constants/Colors";
+import { LinearGradient } from "expo-linear-gradient";
+import { MotiView } from "moti";
+import { useTheme, spacing } from "../theme";
 
-const days = ["", "Mon", "Tue", "Wed", "Thu", "Fri"];
-const periods = ["1", "2", "3", "4", "5", "6"];
+const days = ["Mon", "Tue", "Wed", "Thu", "Fri"] as const;
+const periods = ["1", "2", "3", "4", "5", "6"] as const;
 const periodTimes = [
   { start: "08:00", end: "08:50" },
   { start: "09:00", end: "09:50" },
@@ -24,173 +26,282 @@ const sampleData: Record<string, string[]> = {
 const getCurrentPeriodIndex = () => {
   const now = new Date();
   const currentTime = now.getHours() * 60 + now.getMinutes();
-
   for (let i = 0; i < periodTimes.length; i++) {
-  const [startHour, startMin] = periodTimes[i]!.start.split(":").map(Number) as [number | undefined, number | undefined];
-  const [endHour, endMin] = periodTimes[i]!.end.split(":").map(Number) as [number | undefined, number | undefined];
-  if (startHour == null || startMin == null || endHour == null || endMin == null) continue;
-  const start = startHour * 60 + startMin;
-  const end = endHour * 60 + endMin;
-
-    if (currentTime >= start && currentTime <= end) return i;
+    const [startHour, startMin] = periodTimes[i]!.start.split(":").map(Number) as [number, number];
+    const [endHour, endMin] = periodTimes[i]!.end.split(":").map(Number) as [number, number];
+    if (currentTime >= startHour * 60 + startMin && currentTime <= endHour * 60 + endMin) return i;
   }
-
   return -1;
 };
 
 const TimeTableScreen = () => {
   const [currentDay, setCurrentDay] = useState("");
   const [currentPeriod, setCurrentPeriod] = useState(-1);
+  const theme = useTheme();
 
   useEffect(() => {
     const now = new Date();
-    const dayIndex = now.getDay();
-    const weekdayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  setCurrentDay(weekdayNames[dayIndex] ?? "");
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    setCurrentDay(dayNames[now.getDay()] ?? "");
     setCurrentPeriod(getCurrentPeriodIndex());
   }, []);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Weekly Schedule</Text>
-      
-      <View style={styles.tableContainer}>
-        {/* Header Row */}
-        <View style={styles.headerRow}>
-          <View style={styles.timeColumnHeader} />
-          {days.slice(1).map((day) => (
-            <View key={day} style={[
-              styles.dayHeader,
-              currentDay === day && styles.currentDayHeader
-            ]}>
-              <Text style={styles.dayHeaderText}>{day}</Text>
-            </View>
-          ))}
-        </View>
+    <LinearGradient
+      colors={[theme.gradientStart, theme.gradientMid, theme.gradientEnd]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradient}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <MotiView
+          from={{ opacity: 0, translateY: -12 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: "spring", damping: 18, stiffness: 200 }}
+          style={styles.header}
+        >
+          <Text style={[styles.heading, { color: theme.text }]}>Schedule</Text>
+          <Text style={[styles.subheading, { color: theme.textMuted }]}>
+            {currentDay ? `Today is ${currentDay}` : "Weekly timetable"}
+          </Text>
+        </MotiView>
 
-        {/* Period Rows */}
-        {periods.map((period, rowIndex) => (
-          <View key={rowIndex} style={styles.periodRow}>
-            <View style={styles.timeCell}>
-              <Text style={styles.periodNumber}>{period}</Text>
-              <Text style={styles.timeText}>
-                {periodTimes[rowIndex]!.start} - {periodTimes[rowIndex]!.end}
-              </Text>
-            </View>
-            
-            {days.slice(1).map((day) => {
-              const isCurrent = currentDay === day && currentPeriod === rowIndex;
+        {/* Table Card */}
+        <MotiView
+          from={{ opacity: 0, translateY: 24 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: "spring", delay: 100, damping: 18, stiffness: 160 }}
+          style={[
+            styles.tableCard,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+          ]}
+        >
+          {/* Column headers */}
+          <View style={[styles.headerRow, { borderBottomColor: theme.border }]}>
+            <View style={styles.timeColHeader} />
+            {days.map((day) => {
+              const isToday = currentDay.startsWith(
+                day === "Mon" ? "Monday" :
+                day === "Tue" ? "Tuesday" :
+                day === "Wed" ? "Wednesday" :
+                day === "Thu" ? "Thursday" : "Friday"
+              );
               return (
-                <View key={`${day}-${rowIndex}`} style={[
-                  styles.subjectCell,
-                  isCurrent && styles.currentSubjectCell
-                ]}>
-                  <Text style={styles.subjectText}>
-                    {sampleData[day]?.[rowIndex] ?? ''}
-                  </Text>
-                  {isCurrent && <View style={styles.currentIndicator} />}
+                <View
+                  key={day}
+                  style={[
+                    styles.dayHeader,
+                    { borderLeftColor: theme.border },
+                    isToday && { backgroundColor: theme.chip },
+                  ]}
+                >
+                  {isToday ? (
+                    <LinearGradient
+                      colors={[theme.primary, theme.primaryDark]}
+                      style={styles.todayBadge}
+                    >
+                      <Text style={styles.todayText}>{day}</Text>
+                    </LinearGradient>
+                  ) : (
+                    <Text style={[styles.dayText, { color: theme.textMuted }]}>{day}</Text>
+                  )}
                 </View>
               );
             })}
           </View>
-        ))}
-      </View>
-    </ScrollView>
+
+          {/* Period Rows */}
+          {periods.map((period, rowIndex) => (
+            <View
+              key={rowIndex}
+              style={[styles.periodRow, { borderBottomColor: theme.border }]}
+            >
+              {/* Time column */}
+              <View style={styles.timeCell}>
+                <Text style={[styles.periodNum, { color: theme.primary }]}>{period}</Text>
+                <Text style={[styles.timeText, { color: theme.textMuted }]}>
+                  {periodTimes[rowIndex]!.start}
+                </Text>
+              </View>
+
+              {/* Subject cells */}
+              {days.map((day) => {
+                const isToday = currentDay.startsWith(
+                  day === "Mon" ? "Monday" :
+                  day === "Tue" ? "Tuesday" :
+                  day === "Wed" ? "Wednesday" :
+                  day === "Thu" ? "Thursday" : "Friday"
+                );
+                const isCurrent = isToday && currentPeriod === rowIndex;
+                const subject = sampleData[day]?.[rowIndex] ?? "";
+
+                return (
+                  <View
+                    key={`${day}-${rowIndex}`}
+                    style={[
+                      styles.subjectCell,
+                      { borderLeftColor: theme.border },
+                      isToday && { backgroundColor: `${theme.chip}` },
+                    ]}
+                  >
+                    {isCurrent ? (
+                      <MotiView
+                        from={{ opacity: 0.6 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ loop: true, type: "timing", duration: 1000, repeatReverse: true }}
+                        style={[StyleSheet.absoluteFill, { backgroundColor: theme.chip, borderRadius: 0 }]}
+                      />
+                    ) : null}
+                    <Text
+                      style={[
+                        styles.subjectText,
+                        { color: isCurrent ? theme.primary : theme.text },
+                        isCurrent && { fontWeight: "700" },
+                      ]}
+                      numberOfLines={2}
+                    >
+                      {subject}
+                    </Text>
+                    {isCurrent && (
+                      <View style={[styles.currentDot, { backgroundColor: theme.primary }]} />
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+          ))}
+        </MotiView>
+
+        {/* Legend */}
+        <MotiView
+          from={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 400, type: "timing", duration: 500 }}
+          style={styles.legend}
+        >
+          <View style={[styles.legendDot, { backgroundColor: theme.chip }]} />
+          <Text style={[styles.legendText, { color: theme.textMuted }]}>
+            Highlighted = current period
+          </Text>
+        </MotiView>
+      </ScrollView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: Colors.background,
+  gradient: { flex: 1 },
+  scroll: {
+    paddingBottom: 120,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: Colors.primaryDark,
-    marginBottom: 20,
-    textAlign: "center",
+  header: {
+    paddingTop: 60,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
   },
-  tableContainer: {
-    borderRadius: 12,
-    backgroundColor: Colors.surface,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+  heading: {
+    fontSize: 32,
+    fontWeight: "800",
+    letterSpacing: 0.3,
+  },
+  subheading: {
+    fontSize: 14,
+    marginTop: 2,
+  },
+  tableCard: {
+    marginHorizontal: spacing.md,
+    borderRadius: 20,
+    borderWidth: 1,
     overflow: "hidden",
-    elevation: 2,
   },
   headerRow: {
     flexDirection: "row",
-    backgroundColor: Colors.primaryDark,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.gray + "30",
   },
-  timeColumnHeader: {
-    width: 80,
-    paddingVertical: 12,
+  timeColHeader: {
+    width: 54,
   },
   dayHeader: {
     flex: 1,
-    justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 12,
+    justifyContent: "center",
+    paddingVertical: 10,
     borderLeftWidth: 1,
-    borderLeftColor: Colors.gray + "30",
   },
-  currentDayHeader: {
-    backgroundColor: Colors.primaryLight + "15",
+  todayBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
-  dayHeaderText: {
+  todayText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 12,
+  },
+  dayText: {
+    fontSize: 12,
     fontWeight: "500",
-    color: Colors.white,
   },
   periodRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: Colors.gray + "30",
+    minHeight: 52,
   },
   timeCell: {
-    width: 80,
+    width: 54,
     justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 8,
+    alignItems: "center",
+    padding: 4,
   },
-  periodNumber: {
-    fontWeight: "500",
-    color: Colors.black,
-    marginBottom: 2,
+  periodNum: {
+    fontSize: 14,
+    fontWeight: "700",
   },
   timeText: {
-    fontSize: 11,
-    color: Colors.gray,
+    fontSize: 9,
+    marginTop: 2,
   },
   subjectCell: {
     flex: 1,
-    justifyContent: "center",
     alignItems: "center",
-    padding: 12,
+    justifyContent: "center",
+    padding: 6,
     borderLeftWidth: 1,
-    borderLeftColor: Colors.gray + "30",
     position: "relative",
-  },
-  currentSubjectCell: {
-    backgroundColor: Colors.primaryLight + "10",
+    overflow: "hidden",
   },
   subjectText: {
-    color: Colors.black,
-    fontSize: 14,
+    fontSize: 11,
+    textAlign: "center",
+    lineHeight: 14,
   },
-  currentIndicator: {
+  currentDot: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 3,
-    backgroundColor: Colors.primary,
+    bottom: 4,
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+  },
+  legend: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+  },
+  legendDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  legendText: {
+    fontSize: 12,
   },
 });
 
 export default TimeTableScreen;
+

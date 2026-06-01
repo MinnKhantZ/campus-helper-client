@@ -1,7 +1,11 @@
-import { View, StyleSheet, FlatList, Alert } from 'react-native';
-import { Text, Card, Avatar, Button, TextInput, ActivityIndicator } from 'react-native-paper';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { useState } from 'react';
+import { View, Text, StyleSheet, FlatList, Alert, ScrollView } from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { useState } from "react";
+import { TouchableOpacity } from "react-native-gesture-handler";
+import { LinearGradient } from "expo-linear-gradient";
+import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
+import { MotiView } from "moti";
+import { ActivityIndicator } from "react-native-paper";
 import {
   useGetClubByIdQuery,
   useGetAnnouncementsQuery,
@@ -10,10 +14,36 @@ import {
   useRejectJoinMutation,
   useLeaveClubMutation,
   useDeleteClubMutation,
-} from '../api/Club';
-import { useUsersLookupQuery } from '../api/User';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../store';
+} from "../api/Club";
+import { useUsersLookupQuery } from "../api/User";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store";
+import GlassCard from "../components/ui/GlassCard";
+import GlassInput from "../components/ui/GlassInput";
+import GlassButton from "../components/ui/GlassButton";
+import AnimatedListItem from "../components/ui/AnimatedListItem";
+import { useTheme, spacing, radius } from "../theme";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated";
+
+const BackButton = ({ onPress }: { onPress: () => void }) => {
+  const theme = useTheme();
+  const s = useSharedValue(1);
+  const anim = useAnimatedStyle(() => ({ transform: [{ scale: s.value }] }));
+  return (
+    <Animated.View style={anim}>
+      <TouchableOpacity
+        onPressIn={() => { s.value = withSpring(0.85, { damping: 12, stiffness: 300 }); }}
+        onPressOut={() => { s.value = withSpring(1, { damping: 12, stiffness: 300 }); }}
+        onPress={onPress}
+        style={[styles.backCircle, { backgroundColor: theme.chip }]}
+        activeOpacity={1}
+      >
+        <Icon name="arrow-left" size={20} color={theme.primary} />
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
 
 const ClubInfoScreen = () => {
   const route = useRoute();
@@ -22,6 +52,7 @@ const ClubInfoScreen = () => {
   const id = Number(params.id);
   const { data: club, isLoading, refetch } = useGetClubByIdQuery(id);
   const { data: anns, refetch: refetchAnns, isFetching: loadingAnns } = useGetAnnouncementsQuery(id);
+  const theme = useTheme();
 
   const allIdsToLookup = [
     ...(club?.student_ids || []),
@@ -33,7 +64,7 @@ const ClubInfoScreen = () => {
   const members = (allUsers || []).filter((u) => memberIdSet.has(u.id));
   const pendingUsers = (allUsers || []).filter((u) => club?.pending_ids?.includes(u.id));
 
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState("");
   const [postAnnouncement, { isLoading: posting }] = usePostAnnouncementMutation();
   const [approveJoin, { isLoading: approving }] = useApproveJoinMutation();
   const [rejectJoin, { isLoading: rejecting }] = useRejectJoinMutation();
@@ -42,17 +73,17 @@ const ClubInfoScreen = () => {
   const user = useSelector((s: RootState) => s.auth.user);
 
   const isOwner = !!user && !!club && club.admin_id === user.id;
-  const isAdmin = !!user && user.role === 'admin';
+  const isAdmin = !!user && user.role === "admin";
   const isMember = !!user && !!club && (club.admin_id === user.id || club.student_ids?.includes(user.id));
 
   const onPost = async () => {
     if (!content.trim()) return;
     try {
       await postAnnouncement({ id, content }).unwrap();
-      setContent('');
+      setContent("");
       refetchAnns();
     } catch {
-      Alert.alert('Error', 'Failed to post announcement. Please try again.');
+      Alert.alert("Error", "Failed to post announcement. Please try again.");
     }
   };
 
@@ -61,7 +92,7 @@ const ClubInfoScreen = () => {
       await approveJoin({ id, userId }).unwrap();
       refetch();
     } catch {
-      Alert.alert('Error', 'Failed to approve request.');
+      Alert.alert("Error", "Failed to approve request.");
     }
   };
 
@@ -70,130 +101,215 @@ const ClubInfoScreen = () => {
       await rejectJoin({ id, userId }).unwrap();
       refetch();
     } catch {
-      Alert.alert('Error', 'Failed to reject request.');
+      Alert.alert("Error", "Failed to reject request.");
     }
   };
 
   const onLeave = () => {
-    Alert.alert('Leave Club', 'Are you sure you want to leave this club?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert("Leave Club", "Are you sure you want to leave this club?", [
+      { text: "Cancel", style: "cancel" },
       {
-        text: 'Leave', style: 'destructive', onPress: async () => {
-          try {
-            await leaveClub(id).unwrap();
-            nav.goBack();
-          } catch {
-            Alert.alert('Error', 'Failed to leave club.');
-          }
+        text: "Leave", style: "destructive", onPress: async () => {
+          try { await leaveClub(id).unwrap(); nav.goBack(); }
+          catch { Alert.alert("Error", "Failed to leave club."); }
         },
       },
     ]);
   };
 
   const onDelete = () => {
-    Alert.alert('Delete Club', 'Are you sure you want to delete this club?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert("Delete Club", "Are you sure you want to delete this club?", [
+      { text: "Cancel", style: "cancel" },
       {
-        text: 'Delete', style: 'destructive', onPress: async () => {
-          try {
-            await deleteClub(id).unwrap();
-            nav.goBack();
-          } catch {
-            Alert.alert('Error', 'Failed to delete club.');
-          }
+        text: "Delete", style: "destructive", onPress: async () => {
+          try { await deleteClub(id).unwrap(); nav.goBack(); }
+          catch { Alert.alert("Error", "Failed to delete club."); }
         },
       },
     ]);
   };
 
-  if (isLoading || !club) return <View style={styles.center}><ActivityIndicator /></View>;
+  if (isLoading || !club) {
+    return (
+      <LinearGradient colors={[theme.gradientStart, theme.gradientMid, theme.gradientEnd]} style={styles.gradient}>
+        <View style={styles.center}><ActivityIndicator color={theme.primary} /></View>
+      </LinearGradient>
+    );
+  }
 
-  return (
-    <FlatList
-      data={anns || []}
-      keyExtractor={(i) => String(i.id)}
-      ListHeaderComponent={
-        <View style={{ padding: 12 }}>
-          <Card style={{ marginBottom: 12 }}>
-            <Card.Title title={club.name} subtitle={club.description || ''} left={(p) => <Avatar.Icon {...p} icon="account-group" />} />
-            <Card.Content>
-              <Text>{club.student_ids?.length || 0} members</Text>
-              {members.length > 0 && (
-                <View style={{ marginTop: 8 }}>
-                  {members.map((m) => (
-                    <Text key={m.id}>â€¢ {m.name} ({m.role})</Text>
-                  ))}
-                </View>
-              )}
-              {(isOwner || isAdmin) && (club.pending_ids?.length ?? 0) > 0 && (
-                <View style={{ marginTop: 12 }}>
-                  <Text variant="titleMedium">Pending Requests</Text>
-                  {club.pending_ids.map((uid: number) => {
-                    const pendingUser = pendingUsers.find((u) => u.id === uid);
-                    return (
-                      <View key={uid} style={styles.pendingRow}>
-                        <Text>{pendingUser ? pendingUser.name : `User #${uid}`}</Text>
-                        <View style={{ flexDirection: 'row', gap: 8 }}>
-                          <Button mode="contained" compact onPress={() => onApprove(uid)} loading={approving}>Approve</Button>
-                          <Button mode="outlined" compact onPress={() => onReject(uid)} loading={rejecting}>Reject</Button>
-                        </View>
-                      </View>
-                    );
-                  })}
-                </View>
-              )}
-            </Card.Content>
-            <Card.Actions>
-              {(isOwner || isAdmin) && (
-                <>
-                  <Button onPress={() => nav.navigate('ClubForm', { id })}>Edit</Button>
-                  <Button mode="contained" buttonColor="red" onPress={onDelete} loading={deleting}>Delete</Button>
-                </>
-              )}
-              {isMember && !isOwner && (
-                <Button mode="outlined" onPress={onLeave} loading={leaving}>Leave</Button>
-              )}
-              {isMember && (
-                <Button mode="contained" onPress={() => nav.navigate('ClubChat', { id })}>Open Chat</Button>
-              )}
-            </Card.Actions>
-          </Card>
+  const Header = (
+    <View style={{ paddingHorizontal: spacing.md, paddingBottom: spacing.sm }}>
+      {/* Club info */}
+      <MotiView from={{ opacity: 0, translateY: 16 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: "spring", delay: 60 }}>
+        <GlassCard style={styles.infoCard}>
+          <View style={styles.clubHeader}>
+            <View style={[styles.clubAvatar, { backgroundColor: theme.chip }]}>
+              <Icon name="account-group" size={28} color={theme.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.clubName, { color: theme.text }]}>{club.name}</Text>
+              {club.description ? (
+                <Text style={[styles.clubDesc, { color: theme.textMuted }]}>{club.description}</Text>
+              ) : null}
+              <View style={[styles.badge, { backgroundColor: theme.chip }]}>
+                <Icon name="account-multiple" size={11} color={theme.primary} />
+                <Text style={[styles.badgeText, { color: theme.primary }]}>{club.student_ids?.length || 0} members</Text>
+              </View>
+            </View>
+          </View>
 
-          {(isOwner || isAdmin) && (
-            <Card style={{ marginBottom: 12 }}>
-              <Card.Title title="Post Announcement" />
-              <Card.Content>
-                <TextInput value={content} onChangeText={setContent} placeholder="Write an announcement" multiline />
-              </Card.Content>
-              <Card.Actions>
-                <Button mode="contained" onPress={onPost} loading={posting} disabled={!content.trim()}>Post</Button>
-              </Card.Actions>
-            </Card>
+          {/* Members list */}
+          {members.length > 0 && (
+            <View style={styles.membersSection}>
+              <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>Members</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+                {members.map((m) => (
+                  <View key={m.id} style={[styles.memberChip, { backgroundColor: theme.chip }]}>
+                    <Text style={[styles.memberInitial, { color: theme.primary }]}>{(m.name || "U").slice(0, 1).toUpperCase()}</Text>
+                    <Text style={[styles.memberName, { color: theme.text }]} numberOfLines={1}>{m.name}</Text>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
           )}
 
-          <Text variant="titleLarge" style={{ marginVertical: 8 }}>Announcements</Text>
-        </View>
-      }
-      renderItem={({ item }) => (
-        <Card style={{ marginHorizontal: 12, marginBottom: 12 }}>
-          <Card.Title
-            title={item.author ? item.author.name : `User #${item.user_id}`}
-            left={(p) => <Avatar.Text {...p} label={(item.author?.name || 'U').slice(0, 1)} />}
-          />
-          <Card.Content>
-            <Text>{item.content}</Text>
-          </Card.Content>
-        </Card>
+          {/* Action buttons */}
+          <View style={styles.actions}>
+            {(isOwner || isAdmin) && (
+              <>
+                <GlassButton title="Edit" onPress={() => nav.navigate("ClubForm", { id })} variant="ghost" style={styles.actionBtn} />
+                <GlassButton title="Delete" onPress={onDelete} loading={deleting} variant="danger" style={styles.actionBtn} />
+              </>
+            )}
+            {isMember && !isOwner && (
+              <GlassButton title="Leave" onPress={onLeave} loading={leaving} variant="ghost" style={styles.actionBtn} />
+            )}
+            {isMember && (
+              <GlassButton title="Open Chat" onPress={() => nav.navigate("ClubChat", { id })} variant="primary" style={styles.actionBtn} />
+            )}
+          </View>
+        </GlassCard>
+      </MotiView>
+
+      {/* Pending requests */}
+      {(isOwner || isAdmin) && (club.pending_ids?.length ?? 0) > 0 && (
+        <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: "spring", delay: 120 }}>
+          <GlassCard style={styles.sectionCard}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Pending Requests</Text>
+            {club.pending_ids.map((uid: number) => {
+              const pu = pendingUsers.find((u) => u.id === uid);
+              return (
+                <View key={uid} style={styles.pendingRow}>
+                  <View style={[styles.memberChip, { backgroundColor: theme.chip }]}>
+                    <Text style={[styles.memberInitial, { color: theme.primary }]}>{(pu?.name || "U").slice(0, 1).toUpperCase()}</Text>
+                    <Text style={[styles.memberName, { color: theme.text }]} numberOfLines={1}>{pu ? pu.name : `User #${uid}`}</Text>
+                  </View>
+                  <View style={styles.pendingActions}>
+                    <GlassButton title="Approve" onPress={() => onApprove(uid)} loading={approving} variant="primary" style={styles.pendingBtn} />
+                    <GlassButton title="Reject" onPress={() => onReject(uid)} loading={rejecting} variant="ghost" style={styles.pendingBtn} />
+                  </View>
+                </View>
+              );
+            })}
+          </GlassCard>
+        </MotiView>
       )}
-      refreshing={loadingAnns}
-      onRefresh={() => { refetch(); refetchAnns(); }}
-    />
+
+      {/* Post announcement */}
+      {(isOwner || isAdmin) && (
+        <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: "spring", delay: 160 }}>
+          <GlassCard style={styles.sectionCard}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Post Announcement</Text>
+            <GlassInput
+              placeholder="Write an announcement…"
+              value={content}
+              onChangeText={setContent}
+              multiline
+              numberOfLines={3}
+              style={{ marginTop: 8, minHeight: 72, textAlignVertical: "top" }}
+            />
+            <GlassButton title="Post" onPress={onPost} loading={posting} disabled={!content.trim()} style={{ marginTop: 8 }} />
+          </GlassCard>
+        </MotiView>
+      )}
+
+      <Text style={[styles.sectionTitle, { color: theme.text, marginTop: spacing.sm, marginBottom: spacing.xs }]}>Announcements</Text>
+    </View>
+  );
+
+  return (
+    <LinearGradient colors={[theme.gradientStart, theme.gradientMid, theme.gradientEnd]} style={styles.gradient}>
+      <SafeAreaView style={styles.safe} edges={["top"]}>
+        {/* Top bar */}
+        <View style={styles.topBar}>
+          <BackButton onPress={() => nav.goBack()} />
+          <Text style={[styles.topTitle, { color: theme.text }]} numberOfLines={1}>Club Info</Text>
+          <View style={{ width: 36 }} />
+        </View>
+
+        <FlatList
+          data={anns || []}
+          keyExtractor={(i) => String(i.id)}
+          ListHeaderComponent={Header}
+          renderItem={({ item, index }) => (
+            <AnimatedListItem index={index}>
+              <GlassCard style={[styles.annCard, { marginHorizontal: spacing.md }]}>
+                <View style={styles.annHeader}>
+                  <View style={[styles.annAvatar, { backgroundColor: theme.chip }]}>
+                    <Text style={[styles.memberInitial, { color: theme.primary }]}>
+                      {(item.author?.name || "U").slice(0, 1).toUpperCase()}
+                    </Text>
+                  </View>
+                  <Text style={[styles.annAuthor, { color: theme.text }]}>{item.author ? item.author.name : `User #${item.user_id}`}</Text>
+                </View>
+                <Text style={[styles.annContent, { color: theme.textMuted }]}>{item.content}</Text>
+              </GlassCard>
+            </AnimatedListItem>
+          )}
+          refreshing={loadingAnns}
+          onRefresh={() => { refetch(); refetchAnns(); }}
+          contentContainerStyle={{ paddingBottom: 120 }}
+        />
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  pendingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6 },
+  gradient: { flex: 1 },
+  safe: { flex: 1 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center" },
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  topTitle: { flex: 1, fontSize: 18, fontWeight: "700", textAlign: "center" },
+  backCircle: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  infoCard: { marginBottom: spacing.sm, padding: spacing.md },
+  sectionCard: { marginBottom: spacing.sm, padding: spacing.md },
+  annCard: { marginBottom: spacing.sm, padding: spacing.md },
+  clubHeader: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.sm },
+  clubAvatar: { width: 52, height: 52, borderRadius: radius.md, alignItems: "center", justifyContent: "center" },
+  clubName: { fontSize: 20, fontWeight: "800", letterSpacing: -0.3 },
+  clubDesc: { fontSize: 14, marginTop: 2, lineHeight: 18 },
+  badge: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 6, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, alignSelf: "flex-start" },
+  badgeText: { fontSize: 11, fontWeight: "600" },
+  sectionTitle: { fontSize: 14, fontWeight: "700", letterSpacing: 0.2 },
+  membersSection: { marginTop: spacing.sm },
+  memberChip: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.pill, marginRight: 8 },
+  memberInitial: { fontSize: 13, fontWeight: "700" },
+  memberName: { fontSize: 12, fontWeight: "500", maxWidth: 80 },
+  actions: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.md },
+  actionBtn: { flex: 1, minWidth: 80 },
+  pendingRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: spacing.sm },
+  pendingActions: { flexDirection: "row", gap: spacing.xs },
+  pendingBtn: { minWidth: 80 },
+  annHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginBottom: spacing.xs },
+  annAvatar: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
+  annAuthor: { fontSize: 13, fontWeight: "700" },
+  annContent: { fontSize: 14, lineHeight: 20 },
 });
 
 export default ClubInfoScreen;

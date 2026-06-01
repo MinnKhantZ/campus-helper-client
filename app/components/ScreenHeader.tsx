@@ -1,6 +1,14 @@
-import { Text, TouchableOpacity, View, Platform } from "react-native";
-import { AntDesign } from '@expo/vector-icons';
-import Colors from "../constants/Colors";
+import { View, Text, StyleSheet, Platform } from "react-native";
+import { BlurView } from "expo-blur";
+import { TouchableOpacity } from "react-native-gesture-handler";
+import { AntDesign } from "@expo/vector-icons";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from "react-native-reanimated";
+import { useTheme } from "../theme";
+import { useColorScheme } from "react-native";
 
 interface Props {
   name: string;
@@ -9,6 +17,14 @@ interface Props {
 }
 
 const ScreenHeader = ({ name, navigation, screen }: Props) => {
+  const theme = useTheme();
+  const scheme = useColorScheme();
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
   const handlePress = () => {
     if (screen) {
       navigation.navigate(screen);
@@ -17,60 +33,84 @@ const ScreenHeader = ({ name, navigation, screen }: Props) => {
     }
   };
 
+  const content = (
+    <View style={[styles.inner, Platform.OS === "ios" && styles.iosPadding]}>
+      <Animated.View style={animatedStyle}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={handlePress}
+          onPressIn={() => { scale.value = withSpring(0.85, { damping: 12, stiffness: 300 }); }}
+          onPressOut={() => { scale.value = withSpring(1, { damping: 12, stiffness: 300 }); }}
+          activeOpacity={1}
+        >
+          <View style={[styles.backCircle, { backgroundColor: theme.chip }]}>
+            <AntDesign name="arrow-left" color={theme.primary} size={20} />
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
+      <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
+        {name}
+      </Text>
+      {/* Spacer to keep title centered */}
+      <View style={styles.backBtn} />
+    </View>
+  );
+
+  if (Platform.OS === "ios") {
+    return (
+      <BlurView
+        intensity={theme.tabBarBlur}
+        tint={scheme === "dark" ? "dark" : "light"}
+        style={[styles.container, { borderBottomColor: theme.border }]}
+      >
+        {content}
+      </BlurView>
+    );
+  }
+
   return (
     <View
       style={[
-        styles.headerContainer,
-        Platform.OS === "ios" && styles.iosHeaderPadding,
+        styles.container,
+        { backgroundColor: theme.surfaceSolid, borderBottomColor: theme.border },
       ]}
     >
-      <TouchableOpacity
-        onPress={handlePress}
-        style={[
-          styles.backButton,
-          Platform.OS === "ios" && styles.iosBackButton,
-        ]}
-      >
-        <AntDesign name="arrow-left" color={Colors.white} size={28} />
-      </TouchableOpacity>
-      <Text style={styles.headerTitle}>{name}</Text>
+      {content}
     </View>
   );
 };
 
-const styles = {
-  headerContainer: {
-    backgroundColor: Colors.primary,
-    position: "relative",
-    justifyContent: "center",
+const styles = StyleSheet.create({
+  container: {
+    borderBottomWidth: 1,
+  },
+  inner: {
+    flexDirection: "row",
     alignItems: "center",
-    width: "100%",
-    paddingVertical: 12,
     paddingHorizontal: 16,
-    elevation: 4,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    paddingVertical: 12,
   },
-  iosHeaderPadding: {
-    paddingTop: 40,
+  iosPadding: {
+    paddingTop: 48,
   },
-  backButton: {
-    position: "absolute",
-    left: 16,
-    paddingVertical: 8,
-    zIndex: 1,
+  backBtn: {
+    width: 40,
   },
-  iosBackButton: {
-    left: 24,
-    paddingVertical: 10,
+  backCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  headerTitle: {
-    fontSize: 20,
-    color: Colors.white,
-    fontWeight: "600",
+  title: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "700",
+    textAlign: "center",
+    letterSpacing: 0.2,
   },
-} as const;
+});
 
 export default ScreenHeader;
+
