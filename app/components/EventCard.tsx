@@ -1,14 +1,13 @@
-import { View, Text, StyleSheet, Alert } from "react-native";
+import { View, Text, StyleSheet, Alert, NativeSyntheticEvent, TextLayoutEventData } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withTiming,
 } from "react-native-reanimated";
 import { MotiView } from "moti";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useDeleteEventMutation } from "../api/Event";
 import GlassCard from "./ui/GlassCard";
 import { useTheme, spacing, radius } from "../theme";
@@ -16,15 +15,26 @@ import type { EventItem } from "../types";
 
 const EventCard = (event: EventItem) => {
   const [showDelete, setShowDelete] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [isTruncatable, setIsTruncatable] = useState<boolean | null>(null);
   const [deleteEvent] = useDeleteEventMutation();
   const theme = useTheme();
+
+  const handleMeasure = useCallback(
+    ({ nativeEvent: { lines } }: NativeSyntheticEvent<TextLayoutEventData>) => {
+      setIsTruncatable(lines.length > 2);
+    },
+    []
+  );
 
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
-  const date = new Date(event.date);
+  const date = useMemo(() => new Date(event.date), [event.date]);
+  const isPast = date < new Date();
+
   const formatTime = (d: Date) =>
     d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   const formatDate = (d: Date) =>
@@ -52,7 +62,7 @@ const EventCard = (event: EventItem) => {
   };
 
   return (
-    <Animated.View style={[styles.wrapper, animatedStyle]}>
+    <Animated.View style={[styles.wrapper, animatedStyle, isPast && { opacity: 0.6 }]}>
       <TouchableOpacity
         onLongPress={handleLongPress}
         onPress={handlePress}
@@ -65,21 +75,18 @@ const EventCard = (event: EventItem) => {
         activeOpacity={1}
       >
         <GlassCard style={styles.card}>
-          {/* Left accent bar */}
-          <View style={[styles.accentBar, { backgroundColor: theme.primary }]} />
+          <View style={[styles.accentBar, { backgroundColor: isPast ? theme.textMuted : theme.primary }]} />
 
           <View style={styles.content}>
-            {/* Date badge */}
-            <View style={[styles.dateBadge, { backgroundColor: theme.chip }]}>
-              <Text style={[styles.dateDay, { color: theme.primary }]}>
+            <View style={[styles.dateBadge, { backgroundColor: isPast ? theme.border : theme.chip }]}>
+              <Text style={[styles.dateDay, { color: isPast ? theme.textMuted : theme.primary }]}>
                 {date.getDate()}
               </Text>
-              <Text style={[styles.dateMonth, { color: theme.primary }]}>
+              <Text style={[styles.dateMonth, { color: isPast ? theme.textMuted : theme.primary }]}>
                 {date.toLocaleDateString([], { month: "short" }).toUpperCase()}
               </Text>
             </View>
 
-            {/* Info */}
             <View style={styles.info}>
               <Text style={[styles.title, { color: theme.text }]} numberOfLines={2}>
                 {event.title}
@@ -96,15 +103,41 @@ const EventCard = (event: EventItem) => {
                   {formatDate(date)} · {formatTime(date)}
                 </Text>
               </View>
+              {isPast && (
+                <View style={styles.pastChip}>
+                  <Text style={[styles.pastChipText, { color: theme.textMuted }]}>Past</Text>
+                </View>
+              )}
               {event.description ? (
-                <Text style={[styles.description, { color: theme.textMuted }]} numberOfLines={2}>
-                  {event.description}
-                </Text>
+                <>
+                  <Text
+                    style={[styles.description, styles.measurer, { color: theme.textMuted }]}
+                    pointerEvents="none"
+                    onTextLayout={handleMeasure}
+                  >
+                    {event.description}
+                  </Text>
+                  <Text
+                    style={[styles.description, { color: theme.textMuted }]}
+                    numberOfLines={isTruncatable && !expanded ? 2 : undefined}
+                  >
+                    {event.description}
+                  </Text>
+                  {isTruncatable && (
+                    <TouchableOpacity
+                      onPress={() => setExpanded((p) => !p)}
+                      style={styles.toggleBtn}
+                    >
+                      <Text style={[styles.toggleText, { color: theme.primary }]}>
+                        {expanded ? "Show less" : "Show more"}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </>
               ) : null}
             </View>
           </View>
 
-          {/* Delete reveal */}
           {showDelete && (
             <MotiView
               from={{ opacity: 0, translateY: -8 }}
@@ -189,6 +222,33 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 4,
     lineHeight: 18,
+  },
+  measurer: {
+    position: "absolute",
+    opacity: 0,
+  },
+  pastChip: {
+    alignSelf: "flex-start",
+    marginTop: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: "rgba(128,128,128,0.3)",
+  },
+  toggleBtn: {
+    alignSelf: "flex-start",
+    marginTop: 4,
+  },
+  toggleText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  pastChipText: {
+    fontSize: 11,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
   },
   deleteBar: {
     borderTopWidth: 1,
