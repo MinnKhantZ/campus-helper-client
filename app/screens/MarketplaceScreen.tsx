@@ -18,6 +18,7 @@ import GlassCard from "../components/ui/GlassCard";
 import GlassInput from "../components/ui/GlassInput";
 import AnimatedListItem from "../components/ui/AnimatedListItem";
 import FloatingActionButton from "../components/ui/FloatingActionButton";
+import ProfileButton from "../components/ui/ProfileButton";
 import { useTheme, spacing, radius, shadow } from "../theme";
 
 const ItemCard = ({
@@ -164,7 +165,10 @@ const MarketplaceScreen = () => {
           transition={{ type: "spring", damping: 18, stiffness: 160 }}
           style={styles.headerArea}
         >
-          <Text style={[styles.headerTitle, { color: theme.text }]}>Marketplace</Text>
+          <View style={styles.headerTitleRow}>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>Marketplace</Text>
+            <ProfileButton />
+          </View>
           <GlassInput
             placeholder="Search items..."
             value={q}
@@ -230,7 +234,8 @@ const styles = StyleSheet.create({
   gradient: { flex: 1 },
   safe: { flex: 1 },
   headerArea: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.sm },
-  headerTitle: { fontSize: 28, fontWeight: "800", letterSpacing: -0.5, marginBottom: spacing.sm },
+  headerTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
+  headerTitle: { fontSize: 28, fontWeight: "800", letterSpacing: -0.5 },
   search: { marginBottom: 0 },
   filtersScroll: { flexShrink: 0 },
   filtersContent: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, gap: spacing.xs, alignItems: "center" },

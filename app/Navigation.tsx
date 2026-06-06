@@ -12,6 +12,8 @@ import ClubFormScreen from "./screens/ClubFormScreen";
 import MarketDetailScreen from "./screens/MarketDetailScreen";
 import MarketFormScreen from "./screens/MarketFormScreen";
 import ClubChatScreen from "./screens/ClubChatScreen";
+import ProfileScreen from "./screens/ProfileScreen";
+import SettingsScreen from "./screens/SettingsScreen";
 import LoginScreen from "./screens/LoginScreen";
 import TabBar from "./components/ui/TabBar";
 import { View } from 'react-native';
@@ -19,12 +21,15 @@ import { ActivityIndicator } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect } from 'react';
 import { loadAuthFromStorage } from './features/authSlice';
+import { loadSettingsFromStorage } from './features/settingsSlice';
 import { useTheme } from './theme';
 import type { RootState, AppDispatch } from './store';
 
 export type RootStackParamList = {
   Login: undefined;
   MainTabs: undefined;
+  Profile: undefined;
+  Settings: undefined;
   EventAdd: undefined;
   ClubInfo: { id: number };
   ClubForm: { id?: number } | undefined;
@@ -62,6 +67,7 @@ const StackGroup = () => {
   const auth = useSelector((s: RootState) => s.auth);
   const dispatch = useDispatch<AppDispatch>();
   useEffect(() => {
+    dispatch(loadSettingsFromStorage());
     if (!auth.hydrated) {
       dispatch(loadAuthFromStorage());
     }
@@ -82,6 +88,8 @@ const StackGroup = () => {
       ) : (
         <>
           <Stack.Screen name="MainTabs" component={MainTabs} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="EventAdd" component={EventAddScreen} />
           <Stack.Screen name="ClubInfo" component={ClubInfoScreen} />
           <Stack.Screen name="ClubForm" component={ClubFormScreen} />

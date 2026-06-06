@@ -21,7 +21,20 @@ export const authApi = createApi({
     logout: builder.mutation<{ message: string }, void>({
       query: () => ({ url: '/auth/logout', method: 'POST' }),
     }),
+    updateProfile: builder.mutation<{ user: User }, Partial<Pick<User, 'name' | 'major' | 'rollno'>>>({
+      query: (body) => ({ url: '/auth/me', method: 'PATCH', body }),
+    }),
+    changePassword: builder.mutation<{ message: string }, { oldPassword: string; newPassword: string }>({
+      query: (body) => ({ url: '/auth/change-password', method: 'POST', body }),
+    }),
   }),
 });
 
-export const { useLoginMutation, useRegisterMutation, useMeQuery, useLogoutMutation } = authApi;
+export const {
+  useLoginMutation,
+  useRegisterMutation,
+  useMeQuery,
+  useLogoutMutation,
+  useUpdateProfileMutation,
+  useChangePasswordMutation,
+} = authApi;

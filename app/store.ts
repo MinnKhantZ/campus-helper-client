@@ -4,6 +4,7 @@ import { authApi } from "./api/Auth";
 import { clubApi } from "./api/Club";
 import { marketplaceApi } from "./api/Marketplace";
 import authReducer from "./features/authSlice";
+import settingsReducer from "./features/settingsSlice";
 import { messageApi } from "./api/Message";
 import { userApi } from "./api/User";
 
@@ -16,6 +17,7 @@ const store = configureStore({
     [userApi.reducerPath]: userApi.reducer,
     [messageApi.reducerPath]: messageApi.reducer,
     auth: authReducer,
+    settings: settingsReducer,
   },
   middleware: (getDefaultMiddleware) =>
   getDefaultMiddleware().concat(eventApi.middleware, authApi.middleware, clubApi.middleware, marketplaceApi.middleware, userApi.middleware, messageApi.middleware),

@@ -1,4 +1,5 @@
 export type Role = 'admin' | 'student';
+export type ThemeMode = 'light' | 'dark' | 'system';
 
 export interface User {
   id: number;

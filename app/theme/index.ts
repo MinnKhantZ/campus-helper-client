@@ -1,5 +1,7 @@
 import { useColorScheme } from 'react-native';
+import { useSelector } from 'react-redux';
 import { LightTheme, DarkTheme } from '../constants/Colors';
+import type { RootState } from '../store';
 
 export const spacing = {
   xs: 4,
@@ -73,6 +75,8 @@ export type AppTheme = {
 
 export function useTheme(): AppTheme {
   const scheme = useColorScheme();
-  return scheme === 'dark' ? DarkTheme : LightTheme;
+  const themeMode = useSelector((s: RootState) => s.settings.themeMode);
+  const resolved = themeMode === 'system' ? scheme : themeMode;
+  return resolved === 'dark' ? DarkTheme : LightTheme;
 }
 

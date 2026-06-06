@@ -18,6 +18,7 @@ import GlassCard from "../components/ui/GlassCard";
 import GlassButton from "../components/ui/GlassButton";
 import AnimatedListItem from "../components/ui/AnimatedListItem";
 import FloatingActionButton from "../components/ui/FloatingActionButton";
+import ProfileButton from "../components/ui/ProfileButton";
 import { useTheme, spacing, radius, shadow } from "../theme";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store";
@@ -179,7 +180,10 @@ const ClubsScreen = () => {
           transition={{ type: "spring", damping: 18, stiffness: 160 }}
           style={styles.header}
         >
-          <Text style={[styles.headerTitle, { color: theme.text }]}>Clubs</Text>
+          <View style={styles.headerRow}>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>Clubs</Text>
+            <ProfileButton />
+          </View>
         </MotiView>
 
         {/* Tab Pills */}
@@ -218,6 +222,7 @@ const styles = StyleSheet.create({
   gradient: { flex: 1 },
   safe: { flex: 1 },
   header: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.sm },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   headerTitle: { fontSize: 28, fontWeight: "800", letterSpacing: -0.5 },
   tabRow: {
     flexDirection: "row",

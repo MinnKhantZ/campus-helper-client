@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
+import ProfileButton from "../components/ui/ProfileButton";
 import { useTheme, spacing } from "../theme";
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri"] as const;
@@ -64,10 +65,15 @@ const TimeTableScreen = () => {
           transition={{ type: "spring", damping: 18, stiffness: 200 }}
           style={styles.header}
         >
-          <Text style={[styles.heading, { color: theme.text }]}>Schedule</Text>
-          <Text style={[styles.subheading, { color: theme.textMuted }]}>
-            {currentDay ? `Today is ${currentDay}` : "Weekly timetable"}
-          </Text>
+          <View style={styles.headerTopRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.heading, { color: theme.text }]}>Schedule</Text>
+              <Text style={[styles.subheading, { color: theme.textMuted }]}>
+                {currentDay ? `Today is ${currentDay}` : "Weekly timetable"}
+              </Text>
+            </View>
+            <ProfileButton />
+          </View>
         </MotiView>
 
         {/* Table Card */}
@@ -202,6 +208,10 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
   },
   heading: {
     fontSize: 32,

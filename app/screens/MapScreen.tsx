@@ -32,6 +32,21 @@ const campusLocations = [
   { id: 14, name: "Football Ground", coordinate: { latitude: 22.03449725516056, longitude: 96.10308277888068 }, icon: "sports-soccer" },
 ] as const;
 
+const PanelBackground = ({ children, style, theme: t }: { children: React.ReactNode; style?: any; theme: ReturnType<typeof useTheme> }) => {
+  if (Platform.OS === "ios") {
+    return (
+      <BlurView intensity={t.tabBarBlur} tint="light" style={[styles.panel, style]}>
+        {children}
+      </BlurView>
+    );
+  }
+  return (
+    <View style={[styles.panel, { backgroundColor: t.surfaceSolid }, style]}>
+      {children}
+    </View>
+  );
+};
+
 const MapScreen = () => {
   type MapViewLike = MapView & { animateToRegion: (region: Region, duration?: number) => void };
   const mapRef = useRef<MapViewLike | null>(null);
@@ -46,21 +61,6 @@ const MapScreen = () => {
     mapRef.current?.animateToRegion(
       { ...location.coordinate, latitudeDelta: 0.001, longitudeDelta: 0.001 },
       800
-    );
-  };
-
-  const PanelBackground = ({ children, style }: { children: React.ReactNode; style?: any }) => {
-    if (Platform.OS === "ios") {
-      return (
-        <BlurView intensity={theme.tabBarBlur} tint="light" style={[styles.panel, style]}>
-          {children}
-        </BlurView>
-      );
-    }
-    return (
-      <View style={[styles.panel, { backgroundColor: theme.surfaceSolid }, style]}>
-        {children}
-      </View>
     );
   };
 
@@ -85,7 +85,7 @@ const MapScreen = () => {
       </MapView>
 
       {/* Location pill bar */}
-      <PanelBackground style={styles.chipBar}>
+      <PanelBackground style={styles.chipBar} theme={theme}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipScroll}>
           {campusLocations.map((loc, index) => {
             const isActive = selected?.id === loc.id;

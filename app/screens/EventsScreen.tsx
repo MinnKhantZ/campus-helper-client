@@ -3,6 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
 import EventList from "../components/EventList";
 import FloatingActionButton from "../components/ui/FloatingActionButton";
+import ProfileButton from "../components/ui/ProfileButton";
 import { useTheme, spacing } from "../theme";
 
 const EventsScreen = ({ navigation }: { navigation: any }) => {
@@ -22,10 +23,15 @@ const EventsScreen = ({ navigation }: { navigation: any }) => {
         transition={{ type: "spring", damping: 18, stiffness: 200 }}
         style={styles.header}
       >
-        <Text style={[styles.heading, { color: theme.text }]}>Events</Text>
-        <Text style={[styles.subheading, { color: theme.textMuted }]}>
-          Upcoming campus events
-        </Text>
+        <View style={styles.headerRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.heading, { color: theme.text }]}>Events</Text>
+            <Text style={[styles.subheading, { color: theme.textMuted }]}>
+              Upcoming campus events
+            </Text>
+          </View>
+          <ProfileButton />
+        </View>
       </MotiView>
 
       {/* Event List */}
@@ -44,6 +50,10 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
   },
   heading: {
     fontSize: 32,
