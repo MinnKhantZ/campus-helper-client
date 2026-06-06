@@ -26,7 +26,7 @@ import { useTheme, spacing, radius } from "../theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated";
 
-const BackButton = ({ onPress }: { onPress: () => void }) => {
+const IconCircle = ({ icon, onPress, loading }: { icon: string; onPress: () => void; loading?: boolean }) => {
   const theme = useTheme();
   const s = useSharedValue(1);
   const anim = useAnimatedStyle(() => ({ transform: [{ scale: s.value }] }));
@@ -36,10 +36,15 @@ const BackButton = ({ onPress }: { onPress: () => void }) => {
         onPressIn={() => { s.value = withSpring(0.85, { damping: 12, stiffness: 300 }); }}
         onPressOut={() => { s.value = withSpring(1, { damping: 12, stiffness: 300 }); }}
         onPress={onPress}
-        style={[styles.backCircle, { backgroundColor: theme.chip }]}
+        disabled={loading}
+        style={[styles.iconCircle, { backgroundColor: theme.chip }]}
         activeOpacity={1}
       >
-        <Icon name="arrow-left" size={20} color={theme.primary} />
+        {loading ? (
+          <ActivityIndicator size={16} color={theme.primary} />
+        ) : (
+          <Icon name={icon as any} size={20} color={theme.primary} />
+        )}
       </TouchableOpacity>
     </Animated.View>
   );
@@ -153,7 +158,7 @@ const ClubInfoScreen = () => {
               ) : null}
               <View style={[styles.badge, { backgroundColor: theme.chip }]}>
                 <Icon name="account-multiple" size={11} color={theme.primary} />
-                <Text style={[styles.badgeText, { color: theme.primary }]}>{club.student_ids?.length || 0} members</Text>
+                <Text style={[styles.badgeText, { color: theme.primary }]}>{(club.student_ids?.length || 0) + (club.admin_id ? 1 : 0)} members</Text>
               </View>
             </View>
           </View>
@@ -173,21 +178,18 @@ const ClubInfoScreen = () => {
             </View>
           )}
 
-          {/* Action buttons */}
-          <View style={styles.actions}>
-            {(isOwner || isAdmin) && (
-              <>
-                <GlassButton title="Edit" onPress={() => nav.navigate("ClubForm", { id })} variant="ghost" style={styles.actionBtn} />
-                <GlassButton title="Delete" onPress={onDelete} loading={deleting} variant="danger" style={styles.actionBtn} />
-              </>
-            )}
-            {isMember && !isOwner && (
-              <GlassButton title="Leave" onPress={onLeave} loading={leaving} variant="ghost" style={styles.actionBtn} />
-            )}
-            {isMember && (
-              <GlassButton title="Open Chat" onPress={() => nav.navigate("ClubChat", { id })} variant="primary" style={styles.actionBtn} />
-            )}
-          </View>
+          {/* Open Chat */}
+          {isMember && (
+            <TouchableOpacity
+              style={[styles.chatRow, { backgroundColor: theme.chip }]}
+              onPress={() => nav.navigate("ClubChat", { id })}
+              activeOpacity={0.7}
+            >
+              <Icon name="forum-outline" size={22} color={theme.primary} />
+              <Text style={[styles.chatRowText, { color: theme.primary }]}>Open Club Chat</Text>
+              <Icon name="chevron-right" size={22} color={theme.primary} />
+            </TouchableOpacity>
+          )}
         </GlassCard>
       </MotiView>
 
@@ -221,7 +223,7 @@ const ClubInfoScreen = () => {
           <GlassCard style={styles.sectionCard}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Post Announcement</Text>
             <GlassInput
-              placeholder="Write an announcement…"
+              placeholder="Write an announcement..."
               value={content}
               onChangeText={setContent}
               multiline
@@ -242,9 +244,19 @@ const ClubInfoScreen = () => {
       <SafeAreaView style={styles.safe} edges={["top"]}>
         {/* Top bar */}
         <View style={styles.topBar}>
-          <BackButton onPress={() => nav.goBack()} />
+          <IconCircle icon="arrow-left" onPress={() => nav.goBack()} />
           <Text style={[styles.topTitle, { color: theme.text }]} numberOfLines={1}>Club Info</Text>
-          <View style={{ width: 36 }} />
+          <View style={styles.topActions}>
+            {(isOwner || isAdmin) && (
+              <>
+                <IconCircle icon="pencil-outline" onPress={() => nav.navigate("ClubForm", { id })} />
+                <IconCircle icon="delete-outline" onPress={onDelete} loading={deleting} />
+              </>
+            )}
+            {isMember && !isOwner && (
+              <IconCircle icon="logout" onPress={onLeave} loading={leaving} />
+            )}
+          </View>
         </View>
 
         <FlatList
@@ -286,7 +298,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   topTitle: { flex: 1, fontSize: 18, fontWeight: "700", textAlign: "center" },
-  backCircle: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  topActions: { flexDirection: "row", gap: 8 },
+  iconCircle: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   infoCard: { marginBottom: spacing.sm, padding: spacing.md },
   sectionCard: { marginBottom: spacing.sm, padding: spacing.md },
   annCard: { marginBottom: spacing.sm, padding: spacing.md },
@@ -301,8 +314,15 @@ const styles = StyleSheet.create({
   memberChip: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.pill, marginRight: 8 },
   memberInitial: { fontSize: 13, fontWeight: "700" },
   memberName: { fontSize: 12, fontWeight: "500", maxWidth: 80 },
-  actions: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.md },
-  actionBtn: { flex: 1, minWidth: 80 },
+  chatRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginTop: spacing.md,
+    padding: spacing.md,
+    borderRadius: radius.md,
+  },
+  chatRowText: { fontSize: 15, fontWeight: "600", flex: 1 },
   pendingRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: spacing.sm },
   pendingActions: { flexDirection: "row", gap: spacing.xs },
   pendingBtn: { minWidth: 80 },

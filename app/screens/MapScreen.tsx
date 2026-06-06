@@ -12,6 +12,7 @@ import { BlurView } from "expo-blur";
 import { MaterialIcons } from "@expo/vector-icons";
 import { MotiView } from "moti";
 import CampusMarker from "../components/CampusMarker";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, spacing } from "../theme";
 
 const campusLocations = [
@@ -36,6 +37,7 @@ const MapScreen = () => {
   const mapRef = useRef<MapViewLike | null>(null);
   const [selected, setSelected] = useState<(typeof campusLocations)[number] | null>(null);
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
 
   const focusOnMarker = (index: number) => {
     const location = campusLocations[index];
@@ -122,7 +124,7 @@ const MapScreen = () => {
           animate={{ opacity: 1, translateY: 0 }}
           exit={{ opacity: 0, translateY: 30 }}
           transition={{ type: "spring", damping: 18, stiffness: 200 }}
-          style={styles.infoCardWrap}
+          style={[styles.infoCardWrap, { bottom: insets.bottom + 110 }]}
         >
           {Platform.OS === "ios" ? (
             <BlurView intensity={theme.cardBlur} tint="light" style={styles.infoCard}>

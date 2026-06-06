@@ -14,9 +14,12 @@ import MarketFormScreen from "./screens/MarketFormScreen";
 import ClubChatScreen from "./screens/ClubChatScreen";
 import LoginScreen from "./screens/LoginScreen";
 import TabBar from "./components/ui/TabBar";
+import { View } from 'react-native';
+import { ActivityIndicator } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect } from 'react';
 import { loadAuthFromStorage } from './features/authSlice';
+import { useTheme } from './theme';
 import type { RootState, AppDispatch } from './store';
 
 export type RootStackParamList = {
@@ -46,6 +49,15 @@ const MainTabs = () => (
   </Tab.Navigator>
 );
 
+const LoadingScreen = () => {
+  const theme = useTheme();
+  return (
+    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: theme.gradientStart }}>
+      <ActivityIndicator size="large" color={theme.primary} />
+    </View>
+  );
+};
+
 const StackGroup = () => {
   const auth = useSelector((s: RootState) => s.auth);
   const dispatch = useDispatch<AppDispatch>();
@@ -54,6 +66,14 @@ const StackGroup = () => {
       dispatch(loadAuthFromStorage());
     }
   }, [auth.hydrated, dispatch]);
+
+  if (!auth.hydrated) {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Loading" component={LoadingScreen} />
+      </Stack.Navigator>
+    );
+  }
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>

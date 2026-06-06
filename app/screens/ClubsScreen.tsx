@@ -17,6 +17,7 @@ import type { ClubItem } from "../types";
 import GlassCard from "../components/ui/GlassCard";
 import GlassButton from "../components/ui/GlassButton";
 import AnimatedListItem from "../components/ui/AnimatedListItem";
+import FloatingActionButton from "../components/ui/FloatingActionButton";
 import { useTheme, spacing, radius, shadow } from "../theme";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store";
@@ -53,7 +54,7 @@ const ClubRow = ({
               <View style={[styles.badge, { backgroundColor: theme.chip }]}>
                 <Icon name="account-multiple" size={12} color={theme.primary} />
                 <Text style={[styles.badgeText, { color: theme.primary }]}>
-                  {club.student_ids?.length || 0} members
+                  {(club.student_ids?.length || 0) + (club.admin_id ? 1 : 0)} members
                 </Text>
               </View>
             </View>
@@ -160,8 +161,6 @@ const ClubsScreen = () => {
   const nav = useNavigation() as unknown as NavType;
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState<"All" | "Joined">("All");
-  const scale = useSharedValue(1);
-  const fabAnim = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   const tabs = ["All", "Joined"] as const;
 
@@ -209,24 +208,7 @@ const ClubsScreen = () => {
           {activeTab === "All" ? <AllClubsTab /> : <JoinedClubsTab />}
         </View>
 
-        {/* FAB */}
-        <Animated.View style={[styles.fabContainer, fabAnim]}>
-          <TouchableOpacity
-            onPressIn={() => { scale.value = withSpring(0.88, { damping: 12, stiffness: 300 }); }}
-            onPressOut={() => { scale.value = withSpring(1, { damping: 12, stiffness: 300 }); }}
-            onPress={() => nav.navigate("ClubForm")}
-            activeOpacity={1}
-          >
-            <LinearGradient
-              colors={[theme.primary, theme.primaryDark]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.fab}
-            >
-              <Icon name="plus" size={28} color="#fff" />
-            </LinearGradient>
-          </TouchableOpacity>
-        </Animated.View>
+        <FloatingActionButton onPress={() => nav.navigate("ClubForm")} />
       </SafeAreaView>
     </LinearGradient>
   );
@@ -291,15 +273,6 @@ const styles = StyleSheet.create({
   joinedText: { fontSize: 12, fontWeight: "600" },
   joinBtn: { paddingHorizontal: 0, minWidth: 80 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  fabContainer: { position: "absolute", right: 16, bottom: 100 },
-  fab: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
-    ...shadow.lg,
-  },
 });
 
 export default ClubsScreen;

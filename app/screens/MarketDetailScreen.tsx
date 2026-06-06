@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, Image, Linking, ScrollView, Alert } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import { MotiView } from "moti";
@@ -24,6 +24,7 @@ const MarketDetailScreen = () => {
   const user = useSelector((s: RootState) => s.auth.user);
   const [delItem] = useDeleteItemMutation();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const backScale = useSharedValue(1);
   const backAnim = useAnimatedStyle(() => ({ transform: [{ scale: backScale.value }] }));
 
@@ -60,7 +61,7 @@ const MarketDetailScreen = () => {
           <View style={{ width: 36 }} />
         </View>
 
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]} showsVerticalScrollIndicator={false}>
           {/* Image */}
           {imageUri ? (
             <MotiView from={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: "spring", delay: 40 }}>

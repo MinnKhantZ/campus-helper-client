@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { View, Text, StyleSheet, FlatList, Linking, Alert, ScrollView } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,6 +17,7 @@ import type { RootStackParamList } from "../Navigation";
 import GlassCard from "../components/ui/GlassCard";
 import GlassInput from "../components/ui/GlassInput";
 import AnimatedListItem from "../components/ui/AnimatedListItem";
+import FloatingActionButton from "../components/ui/FloatingActionButton";
 import { useTheme, spacing, radius, shadow } from "../theme";
 
 const ItemCard = ({
@@ -117,8 +118,6 @@ const MarketplaceScreen = () => {
   const [delItem] = useDeleteItemMutation();
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const theme = useTheme();
-  const fabScale = useSharedValue(1);
-  const fabAnim = useAnimatedStyle(() => ({ transform: [{ scale: fabScale.value }] }));
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -221,24 +220,7 @@ const MarketplaceScreen = () => {
           }
         />
 
-        {/* FAB */}
-        <Animated.View style={[styles.fabContainer, fabAnim]}>
-          <TouchableOpacity
-            onPressIn={() => { fabScale.value = withSpring(0.88, { damping: 12, stiffness: 300 }); }}
-            onPressOut={() => { fabScale.value = withSpring(1, { damping: 12, stiffness: 300 }); }}
-            onPress={() => nav.navigate("MarketForm")}
-            activeOpacity={1}
-          >
-            <LinearGradient
-              colors={[theme.primary, theme.primaryDark]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.fab}
-            >
-              <Icon name="plus" size={28} color="#fff" />
-            </LinearGradient>
-          </TouchableOpacity>
-        </Animated.View>
+        <FloatingActionButton onPress={() => nav.navigate("MarketForm")} />
       </SafeAreaView>
     </LinearGradient>
   );
@@ -271,15 +253,6 @@ const styles = StyleSheet.create({
   iconBtn: { width: 32, height: 32, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   empty: { paddingTop: 60, alignItems: "center", gap: 12 },
   emptyText: { fontSize: 16, fontWeight: "500" },
-  fabContainer: { position: "absolute", right: 16, bottom: 100 },
-  fab: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
-    ...shadow.lg,
-  },
 });
 
 export default MarketplaceScreen;

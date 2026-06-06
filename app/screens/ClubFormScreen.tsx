@@ -5,7 +5,7 @@ import type { RootStackParamList } from "../Navigation";
 import { useState, useEffect } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCreateClubMutation, useGetClubByIdQuery, useUpdateClubMutation } from "../api/Club";
 import GlassCard from "../components/ui/GlassCard";
 import GlassInput from "../components/ui/GlassInput";
@@ -25,6 +25,7 @@ const ClubFormScreen = () => {
   const [createClub, { isLoading: creating }] = useCreateClubMutation();
   const [updateClub, { isLoading: updating }] = useUpdateClubMutation();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (club) {
@@ -60,7 +61,7 @@ const ClubFormScreen = () => {
           from={{ opacity: 0, translateY: 24 }}
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ type: "spring", delay: 80, damping: 18, stiffness: 160 }}
-          style={styles.content}
+          style={[styles.content, { paddingBottom: insets.bottom + spacing.lg }]}
         >
           <GlassCard style={styles.card}>
             <GlassInput

@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, ScrollView, Image, Alert, Switch } from "react-
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useCreateItemMutation, useGetItemQuery, useUpdateItemMutation } from "../api/Marketplace";
@@ -38,6 +38,7 @@ const MarketFormScreen = () => {
   const [contact_link, setLink] = useState("");
   const [status, setStatus] = useState<"available" | "sold">("available");
   const [image_url, setImageUrl] = useState("");
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (data) {
@@ -114,7 +115,7 @@ const MarketFormScreen = () => {
       <SafeAreaView style={styles.safe} edges={["top"]}>
         <ScreenHeader name={id ? "Edit Item" : "Sell an Item"} navigation={nav} />
 
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <MotiView
             from={{ opacity: 0, translateY: 24 }}
             animate={{ opacity: 1, translateY: 0 }}
@@ -149,7 +150,7 @@ const MarketFormScreen = () => {
               ) : null}
             </GlassCard>
 
-            {/* Status toggle — only when editing */}
+            {/* Status toggle ï¿½ only when editing */}
             {id ? (
               <GlassCard style={styles.card}>
                 <View style={styles.switchRow}>
@@ -181,7 +182,7 @@ const MarketFormScreen = () => {
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
   safe: { flex: 1 },
-  scroll: { padding: spacing.lg, paddingBottom: 40 },
+  scroll: { padding: spacing.lg },
   card: { padding: spacing.lg, marginBottom: spacing.md },
   sectionLabel: { fontSize: 15, fontWeight: "700", marginBottom: spacing.xs },
   imagePicker: {

@@ -1,23 +1,12 @@
 import { StyleSheet, View, Text } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
-import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
-import { TouchableOpacity } from "react-native-gesture-handler";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from "react-native-reanimated";
 import EventList from "../components/EventList";
-import { useTheme, spacing, radius } from "../theme";
+import FloatingActionButton from "../components/ui/FloatingActionButton";
+import { useTheme, spacing } from "../theme";
 
 const EventsScreen = ({ navigation }: { navigation: any }) => {
   const theme = useTheme();
-  const fabScale = useSharedValue(1);
-
-  const fabStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: fabScale.value }],
-  }));
 
   return (
     <LinearGradient
@@ -42,26 +31,7 @@ const EventsScreen = ({ navigation }: { navigation: any }) => {
       {/* Event List */}
       <EventList />
 
-      {/* FAB */}
-      <Animated.View style={[styles.fab, fabStyle]}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("EventAdd")}
-          onPressIn={() => {
-            fabScale.value = withSpring(0.88, { damping: 12, stiffness: 300 });
-          }}
-          onPressOut={() => {
-            fabScale.value = withSpring(1, { damping: 12, stiffness: 300 });
-          }}
-          activeOpacity={1}
-        >
-          <LinearGradient
-            colors={[theme.primary, theme.primaryDark]}
-            style={styles.fabGradient}
-          >
-            <Icon name="plus" size={28} color="#fff" />
-          </LinearGradient>
-        </TouchableOpacity>
-      </Animated.View>
+      <FloatingActionButton onPress={() => navigation.navigate("EventAdd")} />
     </LinearGradient>
   );
 };
@@ -83,23 +53,6 @@ const styles = StyleSheet.create({
   subheading: {
     fontSize: 14,
     marginTop: 2,
-  },
-  fab: {
-    position: "absolute",
-    bottom: 100,
-    right: spacing.lg,
-  },
-  fabGradient: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
   },
 });
 

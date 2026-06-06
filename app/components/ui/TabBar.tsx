@@ -1,12 +1,12 @@
 import React from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   Platform,
   useColorScheme,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import Animated, {
@@ -28,9 +28,10 @@ const TAB_ICONS: Record<string, { active: string; inactive: string }> = {
 const TabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
   const theme = useTheme();
   const scheme = useColorScheme();
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, { bottom: insets.bottom + 16 }]}>
       {Platform.OS === 'ios' ? (
         <BlurView
           intensity={theme.tabBarBlur}
@@ -71,15 +72,12 @@ const TabBarContent: React.FC<ContentProps> = ({ state, descriptors, navigation,
   return (
     <View style={styles.inner}>
       {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key]!;
         const isFocused = state.index === index;
         const icons = TAB_ICONS[route.name] ?? { active: 'circle', inactive: 'circle-outline' };
 
         return (
           <TabItem
             key={route.key}
-            routeName={route.name}
-            label={options.tabBarLabel as string ?? route.name}
             isFocused={isFocused}
             icons={icons}
             theme={theme}
@@ -96,15 +94,13 @@ const TabBarContent: React.FC<ContentProps> = ({ state, descriptors, navigation,
 };
 
 interface TabItemProps {
-  routeName: string;
-  label: string;
   isFocused: boolean;
   icons: { active: string; inactive: string };
   theme: ReturnType<typeof useTheme>;
   onPress: () => void;
 }
 
-const TabItem: React.FC<TabItemProps> = ({ label, isFocused, icons, theme, onPress }) => {
+const TabItem: React.FC<TabItemProps> = ({ isFocused, icons, theme, onPress }) => {
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -135,15 +131,6 @@ const TabItem: React.FC<TabItemProps> = ({ label, isFocused, icons, theme, onPre
         )}
         <Icon name={iconName} size={24} color={color} />
       </Animated.View>
-      <Text
-        style={[
-          styles.label,
-          { color, fontWeight: isFocused ? '600' : '400' },
-        ]}
-        numberOfLines={1}
-      >
-        {label === 'TimeTable' ? 'Schedule' : label}
-      </Text>
     </TouchableOpacity>
   );
 };
@@ -183,11 +170,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 12,
-  },
-  label: {
-    fontSize: 10,
-    marginTop: 2,
-    letterSpacing: 0.2,
   },
 });
 

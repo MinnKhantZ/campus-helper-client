@@ -6,7 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
@@ -26,6 +26,7 @@ const EventAddScreen = ({ navigation }: { navigation: any }) => {
   const [date, setDate] = useState(new Date());
   const [createEvent, { isLoading }] = useCreateEventMutation();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -70,7 +71,7 @@ const EventAddScreen = ({ navigation }: { navigation: any }) => {
         <ScreenHeader name="Add Event" navigation={navigation} />
 
         <ScrollView
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
