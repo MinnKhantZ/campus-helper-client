@@ -6,7 +6,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useCreateItemMutation, useGetItemQuery, useUpdateItemMutation } from "../api/Marketplace";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { RootStackParamList } from "../Navigation";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
@@ -29,6 +29,7 @@ const MarketFormScreen = () => {
   const [updateItem, { isLoading: isUpdating }] = useUpdateItemMutation();
   const store = useStore();
   const theme = useTheme();
+  const justSaved = useRef(false);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -52,6 +53,37 @@ const MarketFormScreen = () => {
       setImageUrl(data.image_url ?? "");
     }
   }, [data]);
+
+  const isDirty = id ? (
+    title !== (data?.title ?? "") ||
+    description !== (data?.description ?? "") ||
+    price !== String(data?.price ?? "") ||
+    category !== (data?.category ?? "") ||
+    contact_phone !== (data?.contact_phone ?? "") ||
+    contact_link !== (data?.contact_link ?? "") ||
+    status !== data?.status ||
+    image_url !== (data?.image_url ?? "")
+  ) : (
+    title.trim() !== "" ||
+    description !== "" ||
+    price !== "" ||
+    category !== "" ||
+    contact_phone !== "" ||
+    contact_link !== "" ||
+    image_url !== ""
+  );
+
+  useEffect(() => {
+    const unsubscribe = nav.addListener("beforeRemove", (e) => {
+      if (!isDirty || justSaved.current) return;
+      e.preventDefault();
+      Alert.alert("Discard changes?", "You have unsaved changes that will be lost.", [
+        { text: "Keep editing", style: "cancel" },
+        { text: "Discard", style: "destructive", onPress: () => nav.dispatch(e.data.action) },
+      ]);
+    });
+    return unsubscribe;
+  }, [nav, isDirty]);
 
   const onSave = async () => {
     const payload: {
@@ -79,6 +111,7 @@ const MarketFormScreen = () => {
       } else {
         await createItem(payload).unwrap();
       }
+      justSaved.current = true;
       nav.goBack();
     } catch {
       Alert.alert("Error", "Failed to save item. Please try again.");
@@ -124,7 +157,7 @@ const MarketFormScreen = () => {
             <GlassCard style={styles.card}>
               <GlassInput label="Title" placeholder="Item title" value={title} onChangeText={setTitle} />
               <GlassInput label="Description" placeholder="Describe the item..." value={description} onChangeText={setDescription} multiline numberOfLines={3} style={{ marginTop: spacing.sm, minHeight: 72, textAlignVertical: "top" }} />
-              <GlassInput label="Price ($)" placeholder="0.00" value={price} onChangeText={setPrice} keyboardType="numeric" style={{ marginTop: spacing.sm }} />
+              <GlassInput label="Price (MMK)" placeholder="0.00" value={price} onChangeText={setPrice} keyboardType="numeric" style={{ marginTop: spacing.sm }} />
               <GlassInput label="Category" placeholder="e.g. Books, Electronics" value={category} onChangeText={setCategory} style={{ marginTop: spacing.sm }} />
             </GlassCard>
 
@@ -140,7 +173,7 @@ const MarketFormScreen = () => {
               <TouchableOpacity
                 onPress={pickImage}
                 activeOpacity={0.8}
-                style={[styles.imagePicker, { borderColor: theme.border, backgroundColor: theme.chip }]}
+                style={[styles.imagePicker, { borderColor: theme.border, backgroundColor: theme.surface }]}
               >
                 <Icon name="image-plus" size={28} color={theme.primary} />
                 <Text style={[styles.imagePickerText, { color: theme.primary }]}>Pick Image</Text>

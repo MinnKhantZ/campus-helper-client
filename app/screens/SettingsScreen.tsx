@@ -12,10 +12,12 @@ import { MotiView } from 'moti';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import GlassCard from '../components/ui/GlassCard';
 import GlassInput from '../components/ui/GlassInput';
 import GlassButton from '../components/ui/GlassButton';
+import ScreenHeader from '../components/ScreenHeader';
 import { useTheme, spacing, radius } from '../theme';
 import { setThemeMode } from '../features/settingsSlice';
 import { useChangePasswordMutation } from '../api/Auth';
@@ -91,25 +93,14 @@ const SettingsScreen = () => {
       end={{ x: 1, y: 1 }}
       style={styles.gradient}
     >
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <MotiView
-          from={{ opacity: 0, translateY: -10 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: 'timing', duration: 300 }}
-          style={styles.header}
-        >
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Icon name="arrow-left" size={24} color={theme.text} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>Settings</Text>
-          <View style={{ width: 32 }} />
-        </MotiView>
+      <SafeAreaView style={styles.safe} edges={["top"]}>
+        <ScreenHeader name="Settings" navigation={navigation} />
 
-        {/* Appearance */}
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Appearance */}
         <MotiView
           from={{ opacity: 0, translateY: 30 }}
           animate={{ opacity: 1, translateY: 0 }}
@@ -252,33 +243,19 @@ const SettingsScreen = () => {
         </MotiView>
 
         <View style={{ height: spacing.xxl }} />
-      </ScrollView>
+        </ScrollView>
+      </SafeAreaView>
     </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
+  safe: { flex: 1 },
   scroll: {
     flexGrow: 1,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xxl,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.lg,
-  },
-  backBtn: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    paddingTop: spacing.md,
   },
   card: {
     padding: spacing.lg,

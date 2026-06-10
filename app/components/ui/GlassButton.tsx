@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Text,
+  View,
   StyleSheet,
   ActivityIndicator,
   type ViewStyle,
@@ -56,12 +57,21 @@ const GlassButton: React.FC<GlassButtonProps> = ({
   const gradientColors: [string, string] =
     variant === 'danger'
       ? [theme.error, '#b91c1c']
-      : variant === 'ghost'
-      ? [theme.surface, theme.surface]
       : [theme.primary, theme.primaryDark];
 
   const textColor =
     variant === 'ghost' ? theme.primary : '#ffffff';
+
+  const buttonContent = loading ? (
+    <ActivityIndicator color={textColor} size="small" />
+  ) : (
+    <>
+      {leftIcon ?? null}
+      <Text style={[styles.text, { color: textColor }, textStyle]}>
+        {title}
+      </Text>
+    </>
+  );
 
   return (
     <Animated.View style={[animatedStyle, style]}>
@@ -72,30 +82,26 @@ const GlassButton: React.FC<GlassButtonProps> = ({
         disabled={isDisabled}
         activeOpacity={0.9}
       >
-        <LinearGradient
-          colors={gradientColors}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={[
-            styles.button,
-            variant === 'ghost' && {
-              borderWidth: 1.5,
-              borderColor: theme.primary,
-            },
-            isDisabled && styles.disabled,
-          ]}
-        >
-          {loading ? (
-            <ActivityIndicator color={textColor} size="small" />
-          ) : (
-            <>
-              {leftIcon ?? null}
-              <Text style={[styles.text, { color: textColor }, textStyle]}>
-                {title}
-              </Text>
-            </>
-          )}
-        </LinearGradient>
+        {variant === 'ghost' ? (
+          <View
+            style={[
+              styles.button,
+              { borderWidth: 1.5, borderColor: theme.primary },
+              isDisabled && styles.disabled,
+            ]}
+          >
+            {buttonContent}
+          </View>
+        ) : (
+          <LinearGradient
+            colors={gradientColors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[styles.button, isDisabled && styles.disabled]}
+          >
+            {buttonContent}
+          </LinearGradient>
+        )}
       </TouchableOpacity>
     </Animated.View>
   );

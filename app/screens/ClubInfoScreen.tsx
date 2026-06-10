@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, FlatList, Alert, ScrollView } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
@@ -26,7 +26,7 @@ import { useTheme, spacing, radius } from "../theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated";
 
-const IconCircle = ({ icon, onPress, loading }: { icon: string; onPress: () => void; loading?: boolean }) => {
+const IconCircle = ({ icon, onPress, loading, danger }: { icon: ComponentProps<typeof Icon>["name"]; onPress: () => void; loading?: boolean; danger?: boolean }) => {
   const theme = useTheme();
   const s = useSharedValue(1);
   const anim = useAnimatedStyle(() => ({ transform: [{ scale: s.value }] }));
@@ -37,13 +37,13 @@ const IconCircle = ({ icon, onPress, loading }: { icon: string; onPress: () => v
         onPressOut={() => { s.value = withSpring(1, { damping: 12, stiffness: 300 }); }}
         onPress={onPress}
         disabled={loading}
-        style={[styles.iconCircle, { backgroundColor: theme.chip }]}
+        style={[styles.iconCircle, { backgroundColor: danger ? theme.error + "33" : theme.chip }]}
         activeOpacity={1}
       >
         {loading ? (
-          <ActivityIndicator size={16} color={theme.primary} />
+          <ActivityIndicator size={16} color={danger ? theme.error : theme.primary} />
         ) : (
-          <Icon name={icon as any} size={20} color={theme.primary} />
+          <Icon name={icon} size={20} color={danger ? theme.error : theme.primary} />
         )}
       </TouchableOpacity>
     </Animated.View>
@@ -250,7 +250,7 @@ const ClubInfoScreen = () => {
             {(isOwner || isAdmin) && (
               <>
                 <IconCircle icon="pencil-outline" onPress={() => nav.navigate("ClubForm", { id })} />
-                <IconCircle icon="delete-outline" onPress={onDelete} loading={deleting} />
+                <IconCircle icon="delete-outline" onPress={onDelete} loading={deleting} danger />
               </>
             )}
             {isMember && !isOwner && (

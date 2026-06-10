@@ -6,7 +6,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import { MotiView } from "moti";
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated";
-import { ActivityIndicator } from "react-native-paper";
 import { useListItemsQuery, useDeleteItemMutation } from "../api/Marketplace";
 import type { MarketplaceItem } from "../types";
 import { useNavigation } from "@react-navigation/native";
@@ -19,7 +18,7 @@ import GlassInput from "../components/ui/GlassInput";
 import AnimatedListItem from "../components/ui/AnimatedListItem";
 import FloatingActionButton from "../components/ui/FloatingActionButton";
 import ProfileButton from "../components/ui/ProfileButton";
-import { useTheme, spacing, radius, shadow } from "../theme";
+import { useTheme, spacing, radius } from "../theme";
 
 const ItemCard = ({
   item, onPress, onEdit, onDelete, onCall, onLink, canEdit,
@@ -52,7 +51,7 @@ const ItemCard = ({
             <View style={styles.cardBody}>
               <View style={styles.cardTop}>
                 <Text style={[styles.itemTitle, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
-                <Text style={[styles.itemPrice, { color: theme.primary }]}>${item.price.toFixed(2)}</Text>
+                <Text style={[styles.itemPrice, { color: theme.primary }]}>{item.price} MMK</Text>
               </View>
               {item.description ? (
                 <Text style={[styles.itemDesc, { color: theme.textMuted }]} numberOfLines={2}>{item.description}</Text>
@@ -73,21 +72,21 @@ const ItemCard = ({
               {(onCall || onLink || canEdit) ? (
                 <View style={styles.cardActions}>
                   {onCall && (
-                    <TouchableOpacity onPress={onCall} style={[styles.iconBtn, { backgroundColor: theme.chip }]} activeOpacity={0.8}>
+                    <TouchableOpacity onPress={onCall} style={[styles.iconBtn, { backgroundColor: theme.chip }]} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="Call seller">
                       <Icon name="phone" size={16} color={theme.primary} />
                     </TouchableOpacity>
                   )}
                   {onLink && (
-                    <TouchableOpacity onPress={onLink} style={[styles.iconBtn, { backgroundColor: theme.chip }]} activeOpacity={0.8}>
+                    <TouchableOpacity onPress={onLink} style={[styles.iconBtn, { backgroundColor: theme.chip }]} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="Open contact link">
                       <Icon name="web" size={16} color={theme.primary} />
                     </TouchableOpacity>
                   )}
                   {canEdit && (
                     <>
-                      <TouchableOpacity onPress={onEdit} style={[styles.iconBtn, { backgroundColor: theme.chip }]} activeOpacity={0.8}>
+                      <TouchableOpacity onPress={onEdit} style={[styles.iconBtn, { backgroundColor: theme.chip }]} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="Edit listing">
                         <Icon name="pencil" size={16} color={theme.primary} />
                       </TouchableOpacity>
-                      <TouchableOpacity onPress={onDelete} style={[styles.iconBtn, { backgroundColor: theme.error + "22" }]} activeOpacity={0.8}>
+                      <TouchableOpacity onPress={onDelete} style={[styles.iconBtn, { backgroundColor: theme.error + "33" }]} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="Delete listing">
                         <Icon name="delete" size={16} color={theme.error} />
                       </TouchableOpacity>
                     </>
@@ -105,15 +104,15 @@ const ItemCard = ({
 const SORT_OPTIONS = [
   { key: "createdAt:desc", label: "Newest" },
   { key: "createdAt:asc", label: "Oldest" },
-  { key: "price:asc", label: "Price ?" },
-  { key: "price:desc", label: "Price ?" },
+  { key: "price:asc", label: "Price ↗" },
+  { key: "price:desc", label: "Price ↘" },
 ];
 
 const MarketplaceScreen = () => {
   const user = useSelector((s: RootState) => s.auth.user);
   const [q, setQ] = useState("");
   const [category, setCategory] = useState<string | undefined>();
-  const [status, setStatus] = useState<"available" | "sold" | undefined>("available");
+  const [status, setStatus] = useState<"available" | "sold" | undefined>(undefined);
   const [sort, setSort] = useState("createdAt:desc");
   const { data, isFetching, refetch } = useListItemsQuery({ q, category, status, sort });
   const [delItem] = useDeleteItemMutation();
@@ -179,8 +178,9 @@ const MarketplaceScreen = () => {
 
         {/* Filters */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersScroll} contentContainerStyle={styles.filtersContent}>
-          <FilterChip label="Available" active={status === "available"} onPress={() => setStatus(status === "available" ? undefined : "available")} />
-          <FilterChip label="Sold" active={status === "sold"} onPress={() => setStatus(status === "sold" ? undefined : "sold")} />
+          <FilterChip label="All" active={!status} onPress={() => setStatus(undefined)} />
+          <FilterChip label="Available" active={status === "available"} onPress={() => setStatus("available")} />
+          <FilterChip label="Sold" active={status === "sold"} onPress={() => setStatus("sold")} />
           <View style={styles.dividerV} />
           <FilterChip label="All Categories" active={!category} onPress={() => setCategory(undefined)} />
           {categories.map((c) => (
@@ -193,6 +193,7 @@ const MarketplaceScreen = () => {
         </ScrollView>
 
         <FlatList
+          style={styles.flatList}
           data={data ?? []}
           keyExtractor={(i) => String(i.id)}
           renderItem={({ item, index }) => {
@@ -237,11 +238,12 @@ const styles = StyleSheet.create({
   headerTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
   headerTitle: { fontSize: 28, fontWeight: "800", letterSpacing: -0.5 },
   search: { marginBottom: 0 },
-  filtersScroll: { flexShrink: 0 },
+  filtersScroll: { flexShrink: 0, flexGrow: 0 },
   filtersContent: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, gap: spacing.xs, alignItems: "center" },
   dividerV: { width: 1, height: 20, backgroundColor: "rgba(128,128,128,0.3)", marginHorizontal: spacing.xs },
   filterChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.pill, borderWidth: 1 },
   filterChipText: { fontSize: 13, fontWeight: "600" },
+  flatList: { flex: 1 },
   list: { padding: spacing.md, paddingBottom: 120 },
   card: { marginBottom: spacing.sm },
   cardInner: { flexDirection: "row" },

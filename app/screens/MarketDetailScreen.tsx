@@ -1,10 +1,8 @@
 import { View, Text, StyleSheet, Image, Linking, ScrollView, Alert } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import { MotiView } from "moti";
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated";
 import { useGetItemQuery, useDeleteItemMutation } from "../api/Marketplace";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useSelector } from "react-redux";
@@ -14,6 +12,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { BASE_URL } from "../api/BaseUrl";
 import GlassCard from "../components/ui/GlassCard";
 import GlassButton from "../components/ui/GlassButton";
+import ScreenHeader from "../components/ScreenHeader";
 import { useTheme, spacing, radius } from "../theme";
 
 const MarketDetailScreen = () => {
@@ -25,9 +24,6 @@ const MarketDetailScreen = () => {
   const [delItem] = useDeleteItemMutation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const backScale = useSharedValue(1);
-  const backAnim = useAnimatedStyle(() => ({ transform: [{ scale: backScale.value }] }));
-
   if (!item) return null;
 
   const canEdit = user?.role === "admin" || user?.id === item.user_id;
@@ -44,22 +40,7 @@ const MarketDetailScreen = () => {
       style={styles.gradient}
     >
       <SafeAreaView style={styles.safe} edges={["top"]}>
-        {/* Header */}
-        <View style={styles.topBar}>
-          <Animated.View style={backAnim}>
-            <TouchableOpacity
-              onPressIn={() => { backScale.value = withSpring(0.85, { damping: 12, stiffness: 300 }); }}
-              onPressOut={() => { backScale.value = withSpring(1, { damping: 12, stiffness: 300 }); }}
-              onPress={() => nav.goBack()}
-              style={[styles.backBtn, { backgroundColor: theme.chip }]}
-              activeOpacity={1}
-            >
-              <Icon name="arrow-left" size={20} color={theme.primary} />
-            </TouchableOpacity>
-          </Animated.View>
-          <Text style={[styles.topTitle, { color: theme.text }]} numberOfLines={1}>Item Detail</Text>
-          <View style={{ width: 36 }} />
-        </View>
+        <ScreenHeader name="Item Detail" navigation={nav} />
 
         <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]} showsVerticalScrollIndicator={false}>
           {/* Image */}
@@ -74,7 +55,7 @@ const MarketDetailScreen = () => {
               {/* Title + Price */}
               <View style={styles.titleRow}>
                 <Text style={[styles.itemTitle, { color: theme.text }]} numberOfLines={2}>{item.title}</Text>
-                <Text style={[styles.price, { color: theme.primary }]}>${item.price.toFixed(2)}</Text>
+                <Text style={[styles.price, { color: theme.primary }]}>{item.price} MMK</Text>
               </View>
 
               {/* Chips */}
@@ -157,14 +138,6 @@ const MarketDetailScreen = () => {
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
   safe: { flex: 1 },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  topTitle: { flex: 1, fontSize: 18, fontWeight: "700", textAlign: "center" },
-  backBtn: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   scroll: { padding: spacing.md, paddingBottom: 40 },
   image: { width: "100%", height: 240, borderRadius: radius.lg, marginBottom: spacing.md },
   infoCard: { padding: spacing.lg, marginBottom: spacing.md },
